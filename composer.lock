@@ -1,0 +1,14 @@
+{
+    "hash": "78992e2e0e8a1f793e2c600d8888267a",
+    "packages": [
+        {
+            "package": "doctrine/common",
+            "version": "2.2.0"
+        },
+        {
+            "package": "doctrine/dbal",
+            "version": "2.2.1"
+        }
+    ],
+    "aliases": []
+}
