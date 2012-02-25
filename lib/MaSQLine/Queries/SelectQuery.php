@@ -13,7 +13,7 @@ class SelectQuery extends ClausesQuery {
       // 'GROUP BY'    => NULL,
       // 'HAVING'      => NULL,
       // 'ORDER BY'    => NULL,
-      // 'LIMIT'       => NULL
+      'LIMIT'       => new Clauses\LimitClause()
     );
   }
   
@@ -40,28 +40,36 @@ class SelectQuery extends ClausesQuery {
   
   public function from($table_name) {
     $this->getClause('FROM')->setTableName($table_name);
-    
     return $this;
   }
   
   
   public function innerJoin($origin, $target) {
     $this->getClause('FROM')->addInnerJoin($origin, $target);
-    
     return $this;
   }
   
   
   public function leftJoin($origin, $target) {
     $this->getClause('FROM')->addLeftJoin($origin, $target);
-    
     return $this;
   }
   
   
   public function where(\Closure $setup_where) {
     $setup_where($this->getClause('WHERE'));
-    
+    return $this;
+  }
+  
+  
+  public function limit($limit) {
+    $this->getClause('LIMIT')->setLimit($limit);
+    return $this;
+  }
+  
+  
+  public function offset($offset) {
+    $this->getClause('LIMIT')->setOffset($offset);
     return $this;
   }
   
