@@ -23,16 +23,60 @@ class WhereClause implements Clause {
   }
   
   
-  private function addCondition($field_format, $operator, $value) {
-    if (!preg_match(Query::FIELD_FORMAT_REGEX, $field_format, $regex_matches)) {
-      throw new \InvalidArgumentException(sprintf("Got invalid field format: %s", $field_format));
+  public function whereNotEquals($field_format, $value) {
+    $this->addCondition($field_format, '<>', $value);
+  }
+  
+  
+  public function whereGreaterThan($field_format, $value) {
+    $this->addCondition($field_format, '>', $value);
+  }
+  
+  
+  public function whereSmallerThan($field_format, $value) {
+    $this->addCondition($field_format, '<', $value);
+  }
+  
+  
+  public function whereGreaterThanOrEquals($field_format, $value) {
+    $this->addCondition($field_format, '>=', $value);
+  }
+  
+  
+  public function whereSmallerThanOrEquals($field_format, $value) {
+    $this->addCondition($field_format, '<=', $value);
+  }
+  
+  
+  public function whereIn($field_format, array $values) {
+    list($table_name, $column_name) = Query::convertFieldFormat($field_format);
+    
+    switch ($this->schema->getTable($table_name)->getColumn($column_name)->getType()->getName()) {
+      case 'integer':
+      case 'smallint':
+        $type = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
+        break;
+      
+      default:
+        $type = \Doctrine\DBAL\Connection::PARAM_STR_ARRAY;
     }
     
-    list(, $table_name, $column_name) = $regex_matches;
+    $this->conditions[] = sprintf("`%s`.`%s` IN (?)", $table_name, $column_name);
+    $this->params[] = $values;
+    $this->addType($type);
+  }
+  
+  
+  private function addCondition($field_format, $operator, $value, $type = NULL) {
+    list($table_name, $column_name) = Query::convertFieldFormat($field_format);
     
     $this->conditions[] = sprintf("`%s`.`%s` %s ?", $table_name, $column_name, $operator);
     $this->params[] = $value;
-    $this->addType($this->schema->getTable($table_name)->getColumn($column_name)->getType());
+    
+    if ($type === NULL) {
+      $type = $this->schema->getTable($table_name)->getColumn($column_name)->getType();
+    }
+    $this->addType($type);
   }
   
   

@@ -49,4 +49,26 @@ abstract class ClausesQuery extends Query {
   public function __toString() {
     return $this->toSQL();
   }
+  
+  
+  public function getParamValues() {
+    $values = array();
+    foreach ($this->clauses as $clause) {
+      if ($clause instanceof Clauses\WhereClause) {
+        $values = array_merge($values,  $this->getClause('WHERE')->getParamValues());
+      }
+    }
+    return $values;
+  }
+  
+  
+  public function getParamTypes() {
+    $types = array();
+    foreach ($this->clauses as $clause) {
+      if ($clause instanceof Clauses\WhereClause) {
+        $types = array_merge($types, $this->getClause('WHERE')->getParamTypes());
+      }
+    }
+    return $types;
+  }
 }

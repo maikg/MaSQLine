@@ -24,6 +24,17 @@ class Query {
   }
   
   
+  public static function convertFieldFormat($field_format) {
+    if (!preg_match(Query::FIELD_FORMAT_REGEX, $field_format, $regex_matches)) {
+      throw new \InvalidArgumentException(sprintf("Got invalid field format: %s", $field_format));
+    }
+    
+    list(, $table_name, $column_name) = $regex_matches;
+    
+    return array($table_name, $column_name);
+  }
+  
+  
   protected $conn;
   protected $schema;
   
