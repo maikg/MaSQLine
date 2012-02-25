@@ -502,4 +502,33 @@ SQL;
     
     $this->assertEquals($expected_sql, $sql);
   }
+  
+  
+  public function testGroupByAndHaving() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('posts.author_id')
+      ->addSelectColumn(array(Query::raw('MIN(`posts`.`posted_at`)') => 'first_posted_at'), 'datetime')
+      ->from('posts')
+      ->groupBy('posts.author_id')
+      ->having(function($having) {
+        $having->greaterThan(Query::raw('COUNT(*)'), 3, 'integer');
+      })
+      ->toSQL();
+    
+    $expected_sql = <<<SQL
+SELECT `posts`.`author_id`, MIN(`posts`.`posted_at`) AS `first_posted_at`
+FROM `posts`
+GROUP BY `posts`.`author_id`
+HAVING COUNT(*) > ?
+SQL;
+    
+    $this->assertEquals($expected_sql, $sql);
+    
+    $expected_values = array(3);
+    $this->assertEquals($expected_values, $query->getParamValues());
+
+    $expected_types = array(Type::getType('integer'));
+    $this->assertEquals($expected_types, $query->getParamTypes());
+  }
 }

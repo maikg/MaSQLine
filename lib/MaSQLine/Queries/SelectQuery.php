@@ -10,8 +10,8 @@ class SelectQuery extends ClausesQuery {
       'SELECT'      => new Clauses\SelectClause($this->schema),
       'FROM'        => new Clauses\FromClause($this->schema),
       'WHERE'       => new Clauses\ConditionsClause($this->schema, 'AND', 'WHERE'),
-      // 'GROUP BY'    => NULL,
-      // 'HAVING'      => NULL,
+      'GROUP BY'    => new Clauses\GroupByClause(),
+      'HAVING'      => new Clauses\ConditionsClause($this->schema, 'AND', 'HAVING'),
       'ORDER BY'    => new Clauses\OrderByClause(),
       'LIMIT'       => new Clauses\LimitClause()
     );
@@ -91,6 +91,23 @@ class SelectQuery extends ClausesQuery {
       $this->getClause('ORDER BY')->addColumn($arg, $sort_dir);
     }
     
+    return $this;
+  }
+  
+  
+  public function groupBy() {
+    $args = func_get_args();
+    
+    foreach ($args as $arg) {
+      $this->getClause('GROUP BY')->addColumn($arg);
+    }
+    
+    return $this;
+  }
+  
+  
+  public function having(\Closure $setup_having) {
+    $setup_having($this->getClause('HAVING'));
     return $this;
   }
   

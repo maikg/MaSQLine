@@ -47,13 +47,13 @@ class ConditionsClause extends Clause {
   }
   
   
-  public function equals($field_format, $value) {
-    return $this->addSimpleCondition($field_format, '=', $value);
+  public function equals($field_format, $value, $type = NULL) {
+    return $this->addSimpleCondition($field_format, '=', $value, $type = NULL);
   }
   
   
-  public function notEquals($field_format, $value) {
-    return $this->addSimpleCondition($field_format, '<>', $value);
+  public function notEquals($field_format, $value, $type = NULL) {
+    return $this->addSimpleCondition($field_format, '<>', $value, $type = NULL);
   }
   
   
@@ -74,23 +74,23 @@ class ConditionsClause extends Clause {
   }
   
   
-  public function greaterThan($field_format, $value) {
-    return $this->addSimpleCondition($field_format, '>', $value);
+  public function greaterThan($field_format, $value, $type = NULL) {
+    return $this->addSimpleCondition($field_format, '>', $value, $type);
   }
   
   
-  public function smallerThan($field_format, $value) {
-    return $this->addSimpleCondition($field_format, '<', $value);
+  public function smallerThan($field_format, $value, $type = NULL) {
+    return $this->addSimpleCondition($field_format, '<', $value, $type);
   }
   
   
-  public function greaterThanOrEquals($field_format, $value) {
-    return $this->addSimpleCondition($field_format, '>=', $value);
+  public function greaterThanOrEquals($field_format, $value, $type = NULL) {
+    return $this->addSimpleCondition($field_format, '>=', $value, $type);
   }
   
   
-  public function smallerThanOrEquals($field_format, $value) {
-    return $this->addSimpleCondition($field_format, '<=', $value);
+  public function smallerThanOrEquals($field_format, $value, $type = NULL) {
+    return $this->addSimpleCondition($field_format, '<=', $value, $type);
   }
   
   
@@ -123,14 +123,25 @@ class ConditionsClause extends Clause {
   
   
   private function addSimpleCondition($field_format, $operator, $value, $type = NULL) {
-    list($table_name, $column_name) = Query::convertFieldFormat($field_format);
+    $raw = Query::unpackRaw($field_format);
+    if ($raw !== false) {
+      $expression = $raw;
+      
+      if ($type === NULL) {
+        throw new \InvalidArgumentException(sprintf("Expected type to be explicitly defined for raw expression: %s", $raw));
+      }
+    }
+    else {
+      list($table_name, $column_name) = Query::convertFieldFormat($field_format);
+      $expression = sprintf("`%s`.`%s`", $table_name, $column_name);
+    }
     
     if ($type === NULL) {
       $type = $this->schema->getTable($table_name)->getColumn($column_name)->getType();
     }
     
     $this->addCondition(
-      sprintf("`%s`.`%s` %s ?", $table_name, $column_name, $operator),
+      sprintf("%s %s ?", $expression, $operator),
       array($value),
       array(is_string($type) ? Type::getType($type) : $type)
     );
