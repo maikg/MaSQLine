@@ -104,7 +104,7 @@ SQL;
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select()
-      ->addSelect('posts.id', Type::getType('string'))
+      ->addSelectColumn('posts.id', Type::getType('string'))
       ->from('posts')
       ->toSQL();
       
@@ -126,7 +126,7 @@ SQL;
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select()
-      ->addSelect('posts.id', 'string')
+      ->addSelectColumn('posts.id', 'string')
       ->from('posts')
       ->toSQL();
       
@@ -148,7 +148,7 @@ SQL;
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select()
-      ->addSelect(array(Query::raw('COUNT(*)') => 'num'), 'integer')
+      ->addSelectColumn(array(Query::raw('COUNT(*)') => 'num'), 'integer')
       ->from('posts')
       ->toSQL();
       
@@ -306,7 +306,7 @@ SQL;
       ->select('posts.id')
       ->from('posts')
       ->where(function($where) {
-        $where->orWhere(function($where) {
+        $where->orGroup(function($where) {
           $where
             ->like('posts.title', 'Foo%')
             ->equals('posts.title', 'Bar')
@@ -339,10 +339,10 @@ SQL;
       ->where(function($where) {
         $where
           ->like('posts.title', 'Foo%')
-          ->orWhere(function($where) {
+          ->orGroup(function($where) {
             $where
               ->like('posts.title', '%Bar')
-              ->andWhere(function($where) {
+              ->andGroup(function($where) {
                 $where
                   ->equals('posts.id', 2)
                   ->equals('posts.author_id', 1);
@@ -370,6 +370,52 @@ SQL;
       Type::getType('integer'),
       Type::getType('text')
     );
+    $this->assertEquals($expected_types, $query->getParamTypes());
+  }
+  
+  
+  public function testSimpleInnerJoin() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('comments.id', 'posts.title')
+      ->from('comments')
+      ->innerJoin('comments.post_id', 'posts.id')
+      ->toSQL();
+    
+    $expected_sql = <<<SQL
+SELECT `comments`.`id`, `posts`.`title`
+FROM `comments`
+INNER JOIN `posts` ON `comments`.`post_id` = `posts`.`id`
+SQL;
+    
+    $this->assertEquals($expected_sql, $sql);
+  }
+  
+  
+  public function testComplexInnerJoin() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('comments.id', 'posts.title')
+      ->from('comments')
+      ->innerJoin('posts', function($conditions) {
+        $conditions
+          ->equalColumns('comments.post_id', 'posts.id')
+          ->equals('posts.author_id', 2);
+      })
+      ->toSQL();
+    
+    $expected_sql = <<<SQL
+SELECT `comments`.`id`, `posts`.`title`
+FROM `comments`
+INNER JOIN `posts` ON (`comments`.`post_id` = `posts`.`id` AND `posts`.`author_id` = ?)
+SQL;
+    
+    $this->assertEquals($expected_sql, $sql);
+    
+    $expected_values = array(2);
+    $this->assertEquals($expected_values, $query->getParamValues());
+    
+    $expected_types = array(Type::getType('integer'));
     $this->assertEquals($expected_types, $query->getParamTypes());
   }
 }

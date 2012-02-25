@@ -1,9 +1,15 @@
 <?PHP
 namespace DBALExt\Queries\Clauses;
 
-interface Clause {
-  public function toSQL();
+abstract class Clause {
+  abstract public function toSQL();
+  abstract public function isEmpty();
   
+  public function getParamValues() {
+    return array();
+  }
   
-  public function isEmpty();
+  public function getParamTypes() {
+    return array();
+  }
 }

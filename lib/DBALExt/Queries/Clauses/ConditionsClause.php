@@ -5,7 +5,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
 use DBALExt\Queries\Query;
 
-class WhereClause implements Clause {
+class ConditionsClause extends Clause {
   private $schema;
   private $logical_operator;
   private $prefix;
@@ -22,56 +22,80 @@ class WhereClause implements Clause {
   }
   
   
-  public function orWhere(\Closure $setup_where) {
-    $where = new WhereClause($this->schema, 'OR');
+  private function addCondition($condition, array $params = array(), array $types = array()) {
+    $this->conditions[] = $condition;
+    $this->params[] = $params;
+    $this->types[] = $types;
+  }
+  
+  
+  public function orGroup(\Closure $setup_where) {
+    $where = new ConditionsClause($this->schema, 'OR');
     $setup_where = $setup_where($where);
-    $this->conditions[] = $where;
+    $this->addCondition($where->toSQL(), $where->getParamValues(), $where->getParamTypes());
     
     return $this;
   }
   
   
-  public function andWhere(\Closure $setup_where) {
-    $where = new WhereClause($this->schema);
+  public function andGroup(\Closure $setup_where) {
+    $where = new ConditionsClause($this->schema);
     $setup_where = $setup_where($where);
-    $this->conditions[] = $where;
+    $this->addCondition($where->toSQL(), $where->getParamValues(), $where->getParamTypes());
     
     return $this;
   }
   
   
   public function equals($field_format, $value) {
-    return $this->addCondition($field_format, '=', $value);
+    return $this->addSimpleCondition($field_format, '=', $value);
   }
   
   
   public function notEquals($field_format, $value) {
-    return $this->addCondition($field_format, '<>', $value);
+    return $this->addSimpleCondition($field_format, '<>', $value);
+  }
+  
+  
+  public function equalColumns($left_field_format, $right_field_format) {
+    list($left_table_name, $left_column_name) = Query::convertFieldFormat($left_field_format);
+    list($right_table_name, $right_column_name) = Query::convertFieldFormat($right_field_format);
+    
+    $condition = sprintf(
+      "`%s`.`%s` = `%s`.`%s`",
+      $left_table_name,
+      $left_column_name,
+      $right_table_name,
+      $right_column_name
+    );
+    $this->addCondition($condition);
+    
+    return $this;
   }
   
   
   public function greaterThan($field_format, $value) {
-    return $this->addCondition($field_format, '>', $value);
+    return $this->addSimpleCondition($field_format, '>', $value);
   }
   
   
   public function smallerThan($field_format, $value) {
-    return $this->addCondition($field_format, '<', $value);
+    return $this->addSimpleCondition($field_format, '<', $value);
   }
   
   
   public function greaterThanOrEquals($field_format, $value) {
-    return $this->addCondition($field_format, '>=', $value);
+    return $this->addSimpleCondition($field_format, '>=', $value);
   }
   
   
   public function smallerThanOrEquals($field_format, $value) {
-    return $this->addCondition($field_format, '<=', $value);
+    return $this->addSimpleCondition($field_format, '<=', $value);
   }
   
   
   public function like($field_format, $value) {
-    return $this->addCondition($field_format, 'LIKE', $value);
+    return $this->addSimpleCondition($field_format, 'LIKE', $value);
   }
   
   
@@ -88,71 +112,47 @@ class WhereClause implements Clause {
         $type = \Doctrine\DBAL\Connection::PARAM_STR_ARRAY;
     }
     
-    $this->conditions[] = sprintf("`%s`.`%s` IN (?)", $table_name, $column_name);
-    $this->params[] = $values;
-    $this->addType($type);
+    $this->addCondition(
+      sprintf("`%s`.`%s` IN (?)", $table_name, $column_name),
+      array($values),
+      array($type)
+    );
     
     return $this;
   }
   
   
-  private function addCondition($field_format, $operator, $value, $type = NULL) {
+  private function addSimpleCondition($field_format, $operator, $value, $type = NULL) {
     list($table_name, $column_name) = Query::convertFieldFormat($field_format);
-    
-    $this->conditions[] = sprintf("`%s`.`%s` %s ?", $table_name, $column_name, $operator);
-    $this->params[] = $value;
     
     if ($type === NULL) {
       $type = $this->schema->getTable($table_name)->getColumn($column_name)->getType();
     }
-    $this->addType($type);
+    
+    $this->addCondition(
+      sprintf("`%s`.`%s` %s ?", $table_name, $column_name, $operator),
+      array($value),
+      array(is_string($type) ? Type::getType($type) : $type)
+    );
     
     return $this;
   }
   
   
-  private function addType($type) {
-    if (is_string($type)) {
-      $type = Type::getType($type);
-    }
-    $this->types[] = $type;
-  }
-  
-  
   public function getParamValues() {
-    $remaining_params = $this->params;
     $params = array();
-    
-    foreach ($this->conditions as $condition) {
-      if ($condition instanceof WhereClause) {
-        $params = array_merge($params, $condition->getParamValues());
-      }
-      else {
-        $params[] = array_shift($remaining_params);
-      }
+    foreach ($this->params as $condition_params) {
+      $params = array_merge($params, $condition_params);
     }
-    
-    assert('count($remaining_params) == 0');
-    
     return $params;
   }
   
   
   public function getParamTypes() {
-    $remaining_types = $this->types;
     $types = array();
-    
-    foreach ($this->conditions as $condition) {
-      if ($condition instanceof WhereClause) {
-        $types = array_merge($types, $condition->getParamTypes());
-      }
-      else {
-        $types[] = array_shift($remaining_types);
-      }
+    foreach ($this->types as $condition_types) {
+      $types = array_merge($types, $condition_types);
     }
-    
-    assert('count($remaining_types) == 0');
-    
     return $types;
   }
   
@@ -164,7 +164,7 @@ class WhereClause implements Clause {
   
   public function toSQL() {
     $condition_strings = array_map(function($condition) {
-      if ($condition instanceof WhereClause) {
+      if ($condition instanceof ConditionsClause) {
         return $condition->toSQL();
       }
       return $condition;

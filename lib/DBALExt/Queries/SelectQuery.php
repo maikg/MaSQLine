@@ -8,8 +8,8 @@ class SelectQuery extends ClausesQuery {
   protected function getClauses() {
     return array(
       'SELECT'      => new Clauses\SelectClause($this->schema),
-      'FROM'        => new Clauses\FromClause(),
-      'WHERE'       => new Clauses\WhereClause($this->schema, 'AND', 'WHERE'),
+      'FROM'        => new Clauses\FromClause($this->schema),
+      'WHERE'       => new Clauses\ConditionsClause($this->schema, 'AND', 'WHERE'),
       // 'GROUP BY'    => NULL,
       // 'HAVING'      => NULL,
       // 'ORDER BY'    => NULL,
@@ -21,17 +21,16 @@ class SelectQuery extends ClausesQuery {
   public function select() {
     $args = func_get_args();
     
-    $select_clause = new Clauses\SelectClause($this->schema);
+    $this->getClause('SELECT')->clearColumns();
     foreach ($args as $arg) {
-      $select_clause->addColumn($arg);
+      $this->getClause('SELECT')->addColumn($arg);
     }
-    $this->setClause('SELECT', $select_clause);
     
     return $this;
   }
   
   
-  public function addSelect($field_format, $type = NULL) {
+  public function addSelectColumn($field_format, $type = NULL) {
     $select_clause = $this->getClause('SELECT');
     $select_clause->addColumn($field_format, $type);
     
@@ -41,6 +40,13 @@ class SelectQuery extends ClausesQuery {
   
   public function from($table_name) {
     $this->getClause('FROM')->setTableName($table_name);
+    
+    return $this;
+  }
+  
+  
+  public function innerJoin($origin, $target) {
+    $this->getClause('FROM')->addInnerJoin($origin, $target);
     
     return $this;
   }

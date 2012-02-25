@@ -5,7 +5,7 @@ use DBALExt\Queries\Query;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
 
-class SelectClause implements Clause {
+class SelectClause extends Clause {
   private $schema;
   
   private $expressions = array();
