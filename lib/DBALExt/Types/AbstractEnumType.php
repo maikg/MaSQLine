@@ -9,7 +9,7 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  * ENUM type requires a separate implementation. This abstract base class takes most of the
  * pain out of creating one.
  *
- * @package DBALExt\DB
+ * @package DBALExt\Types
  */
 abstract class AbstractEnumType extends SmallIntType {
   protected static $name;

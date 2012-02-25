@@ -186,7 +186,9 @@ SQL;
     $sql = $query
       ->select('posts.title')
       ->from('posts')
-      ->$condition_method('posts.id', 5)
+      ->where(function($where) use ($condition_method) {
+        $where->$condition_method('posts.id', 5);
+      })
       ->toSQL();
       
     $expected_sql = <<<SQL
@@ -207,12 +209,13 @@ SQL;
   
   public static function simpleConditionProvider() {
     return array(
-      array('whereEquals', '='),
-      array('whereNotEquals', '<>'),
-      array('whereGreaterThan', '>'),
-      array('whereSmallerThan', '<'),
-      array('whereGreaterThanOrEquals', '>='),
-      array('whereSmallerThanOrEquals', '<=')
+      array('equals', '='),
+      array('notEquals', '<>'),
+      array('greaterThan', '>'),
+      array('smallerThan', '<'),
+      array('greaterThanOrEquals', '>='),
+      array('smallerThanOrEquals', '<='),
+      array('like', 'LIKE')
     );
   }
   
@@ -222,7 +225,9 @@ SQL;
     $sql = $query
       ->select('posts.title')
       ->from('posts')
-      ->whereIn('posts.id', array(2,3,4))
+      ->where(function($where) {
+        $where->in('posts.id', array(2,3,4));
+      })
       ->toSQL();
       
     $expected_sql = <<<SQL
@@ -246,7 +251,9 @@ SQL;
     $sql = $query
       ->select('posts.id')
       ->from('posts')
-      ->whereIn('posts.title', array('Foo', 'Bar'))
+      ->where(function($where) {
+        $where->in('posts.title', array('Foo', 'Bar'));
+      })
       ->toSQL();
       
     $expected_sql = <<<SQL
@@ -261,6 +268,108 @@ SQL;
     $this->assertEquals($expected_values, $query->getParamValues());
     
     $expected_types = array(\Doctrine\DBAL\Connection::PARAM_STR_ARRAY);
+    $this->assertEquals($expected_types, $query->getParamTypes());
+  }
+  
+  
+  public function testMultipleAndConditions() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('posts.id')
+      ->from('posts')
+      ->where(function($where) {
+        $where
+          ->like('posts.title', 'Foo%')
+          ->notEquals('posts.id', 2);
+      })
+      ->toSQL();
+      
+    $expected_sql = <<<SQL
+SELECT `posts`.`id`
+FROM `posts`
+WHERE (`posts`.`title` LIKE ? AND `posts`.`id` <> ?)
+SQL;
+    
+    $this->assertEquals($expected_sql, $sql);
+    
+    $expected_values = array('Foo%', 2);
+    $this->assertEquals($expected_values, $query->getParamValues());
+    
+    $expected_types = array(Type::getType('string'), Type::getType('integer'));
+    $this->assertEquals($expected_types, $query->getParamTypes());
+  }
+  
+  
+  public function testMultipleOrConditions() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('posts.id')
+      ->from('posts')
+      ->where(function($where) {
+        $where->orWhere(function($where) {
+          $where
+            ->like('posts.title', 'Foo%')
+            ->equals('posts.title', 'Bar')
+            ->equals('posts.id', 2);
+        });
+      })
+      ->toSQL();
+      
+    $expected_sql = <<<SQL
+SELECT `posts`.`id`
+FROM `posts`
+WHERE (`posts`.`title` LIKE ? OR `posts`.`title` = ? OR `posts`.`id` = ?)
+SQL;
+    
+    $this->assertEquals($expected_sql, $sql);
+    
+    $expected_values = array('Foo%', 'Bar', 2);
+    $this->assertEquals($expected_values, $query->getParamValues());
+    
+    $expected_types = array(Type::getType('string'), Type::getType('string'), Type::getType('integer'));
+    $this->assertEquals($expected_types, $query->getParamTypes());
+  }
+  
+  
+  public function testComplexConditions() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('posts.id')
+      ->from('posts')
+      ->where(function($where) {
+        $where
+          ->like('posts.title', 'Foo%')
+          ->orWhere(function($where) {
+            $where
+              ->like('posts.title', '%Bar')
+              ->andWhere(function($where) {
+                $where
+                  ->equals('posts.id', 2)
+                  ->equals('posts.author_id', 1);
+              });
+          })
+          ->like('posts.body', '%foobar%');
+      })
+      ->toSQL();
+      
+    $expected_sql = <<<SQL
+SELECT `posts`.`id`
+FROM `posts`
+WHERE (`posts`.`title` LIKE ? AND (`posts`.`title` LIKE ? OR (`posts`.`id` = ? AND `posts`.`author_id` = ?)) AND `posts`.`body` LIKE ?)
+SQL;
+    
+    $this->assertEquals($expected_sql, $sql);
+    
+    $expected_values = array('Foo%', '%Bar', 2, 1, '%foobar%');
+    $this->assertEquals($expected_values, $query->getParamValues());
+    
+    $expected_types = array(
+      Type::getType('string'),
+      Type::getType('string'),
+      Type::getType('integer'),
+      Type::getType('integer'),
+      Type::getType('text')
+    );
     $this->assertEquals($expected_types, $query->getParamTypes());
   }
 }

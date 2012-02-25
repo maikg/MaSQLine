@@ -9,7 +9,7 @@ class SelectQuery extends ClausesQuery {
     return array(
       'SELECT'      => new Clauses\SelectClause($this->schema),
       'FROM'        => new Clauses\FromClause(),
-      'WHERE'       => new Clauses\WhereClause($this->schema),
+      'WHERE'       => new Clauses\WhereClause($this->schema, 'AND', 'WHERE'),
       // 'GROUP BY'    => NULL,
       // 'HAVING'      => NULL,
       // 'ORDER BY'    => NULL,
@@ -46,44 +46,9 @@ class SelectQuery extends ClausesQuery {
   }
   
   
-  public function whereEquals($field_format, $value) {
-    $this->getClause('WHERE')->whereEquals($field_format, $value);
-    return $this;
-  }
-  
-  
-  public function whereNotEquals($field_format, $value) {
-    $this->getClause('WHERE')->whereNotEquals($field_format, $value);
-    return $this;
-  }
-  
-  
-  public function whereGreaterThan($field_format, $value) {
-    $this->getClause('WHERE')->whereGreaterThan($field_format, $value);
-    return $this;
-  }
-  
-  
-  public function whereSmallerThan($field_format, $value) {
-    $this->getClause('WHERE')->whereSmallerThan($field_format, $value);
-    return $this;
-  }
-  
-  
-  public function whereGreaterThanOrEquals($field_format, $value) {
-    $this->getClause('WHERE')->whereGreaterThanOrEquals($field_format, $value);
-    return $this;
-  }
-  
-  
-  public function whereSmallerThanOrEquals($field_format, $value) {
-    $this->getClause('WHERE')->whereSmallerThanOrEquals($field_format, $value);
-    return $this;
-  }
-  
-  
-  public function whereIn($field_format, array $values) {
-    $this->getClause('WHERE')->whereIn($field_format, $values);
+  public function where(\Closure $setup_where) {
+    $setup_where($this->getClause('WHERE'));
+    
     return $this;
   }
   
