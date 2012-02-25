@@ -18,6 +18,34 @@ abstract class FetchQuery extends Query {
   }
   
   
+  public function fetchOne() {
+    $row = $this->conn
+      ->executeQuery($this->toSQL(), $this->getParamValues(), $this->getParamTypes())
+      ->fetch(\PDO::FETCH_ASSOC);
+    
+    if ($row === false) {
+      return NULL;
+    }
+    
+    $row = $this->convertDatabaseValuesToPHPValues($row);
+    
+    return $row;
+  }
+  
+  
+  public function fetchList($column_name) {
+    return array_map(function($row) use ($column_name) {
+      return $row[$column_name];
+    }, $this->fetchAll());
+  }
+  
+  
+  public function fetchValue($column_name = NULL) {
+    $row = $this->fetchOne();
+    return ($column_name === NULL) ? current($row) : $row[$column_name];
+  }
+  
+  
   private function convertDatabaseValuesToPHPValues(array $row) {
     $conversion_types = $this->getConversionTypes();
     $converted_row = array();

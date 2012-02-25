@@ -513,7 +513,7 @@ SQL;
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select('posts.author_id')
-      ->selectAggr('MIN', array('posts.posted_at' => 'first_posted_at'))
+      ->selectAggr('MIN', 'posts.posted_at', 'first_posted_at')
       ->from('posts')
       ->groupBy('posts.author_id')
       ->having(function($having) {
@@ -543,13 +543,15 @@ SQL;
     $sql = $query
       ->select('posts.author_id')
       ->selectAggr('MIN', 'posts.posted_at')
-      ->selectAggr('MAX', array('posts.posted_at' => 'last_posted_at'))
+      ->selectAggr('MAX', 'posts.posted_at', 'last_posted_at')
+      ->selectCount(NULL, 'all_count')
+      ->selectCount('posts.id', 'post_id_count')
       ->from('posts')
       ->groupBy('posts.author_id')
       ->toSQL();
     
     $expected_sql = <<<SQL
-SELECT `posts`.`author_id`, MIN(`posts`.`posted_at`), MAX(`posts`.`posted_at`) AS `last_posted_at`
+SELECT `posts`.`author_id`, MIN(`posts`.`posted_at`), MAX(`posts`.`posted_at`) AS `last_posted_at`, COUNT(*) AS `all_count`, COUNT(`posts`.`id`) AS `post_id_count`
 FROM `posts`
 GROUP BY `posts`.`author_id`
 SQL;
@@ -557,9 +559,11 @@ SQL;
     $this->assertEquals(sprintf($expected_sql, 'MIN'), $sql);
     
     $expected_types = array(
-      'author_id'                  => Type::getType('integer'),
-      'MIN(`posts`.`posted_at`)'   => Type::getType('datetime'),
-      'last_posted_at'             => Type::getType('datetime')
+      'author_id'                   => Type::getType('integer'),
+      'MIN(`posts`.`posted_at`)'    => Type::getType('datetime'),
+      'last_posted_at'              => Type::getType('datetime'),
+      'all_count'                   => Type::getType('integer'),
+      'post_id_count'               => Type::getType('integer')
     );
     $this->assertEquals($expected_types, $query->getConversionTypes());
   }
@@ -607,7 +611,7 @@ SQL;
     $rows = $query
       ->select('posts.*')
       ->from('posts')
-      ->orderBy('posts.author_id')
+      ->orderBy('posts.id')
       ->fetchAll();
     
     $this->assertCount(2, $rows);
@@ -617,5 +621,63 @@ SQL;
     $this->assertSame('Foo', $rows[0]['title']);
     $this->assertSame('Bar', $rows[0]['body']);
     $this->assertInstanceOf('\DateTime', $rows[0]['posted_at']);
+  }
+  
+  
+  public function testFetchOne() {
+    $this->insertPostFixtures();
+    
+    $query = new SelectQuery($this->conn, $this->schema);
+    $row = $query
+      ->select('posts.*')
+      ->from('posts')
+      ->orderBy('posts.id')
+      ->fetchOne();
+      
+    $this->assertInternalType('array', $row);
+    
+    $this->assertSame(1, $row['id']);
+    $this->assertSame(2, $row['author_id']);
+    $this->assertSame('Foo', $row['title']);
+    $this->assertSame('Bar', $row['body']);
+    $this->assertInstanceOf('\DateTime', $row['posted_at']);
+  }
+  
+  
+  public function testFetchList() {
+    $this->insertPostFixtures();
+    
+    $query = new SelectQuery($this->conn, $this->schema);
+    $rows = $query
+      ->select('posts.*')
+      ->from('posts')
+      ->orderBy('posts.id')
+      ->fetchList('title');
+    
+    $this->assertEquals(array('Foo', 'FooBar'), $rows);
+  }
+  
+  
+  public function testFetchValue() {
+    $this->insertPostFixtures();
+    
+    $query = new SelectQuery($this->conn, $this->schema);
+    $count = $query
+      ->selectCount()
+      ->from('posts')
+      ->orderBy('posts.id')
+      ->fetchValue();
+    
+    $this->assertEquals(2, $count);
+    
+    $query = new SelectQuery($this->conn, $this->schema);
+    $num = $query
+      ->selectAggr('MAX', 'posts.posted_at', 'last_posted_at')
+      ->selectCount(NULL, 'num')
+      ->from('posts')
+      ->orderBy('posts.id')
+      ->fetchValue('num');
+    
+    $this->assertEquals(2, $num);
   }
 }

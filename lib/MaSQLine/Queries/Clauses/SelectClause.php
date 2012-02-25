@@ -17,16 +17,17 @@ class SelectClause extends Clause {
   }
   
   
-  public function addAggregateColumn($name, $field_format, $type = NULL) {
-    $alias = NULL;
-    if (is_array($field_format)) {
-      $alias = current($field_format);
-      $field_format = key($field_format);
+  public function addAggregateColumn($name, $field_format, $alias = NULL, $type = NULL) {    
+    $raw = Query::unpackRaw($field_format);
+    if ($raw !== false) {
+      $expression = $raw;
+    }
+    else {
+      list($table_name, $column_name) = Query::convertFieldFormat($field_format);
+      $expression = sprintf("`%s`.`%s`", $table_name, $column_name);
     }
     
-    list($table_name, $column_name) = Query::convertFieldFormat($field_format);
-    
-    $raw = Query::raw(sprintf("%s(`%s`.`%s`)", $name, $table_name, $column_name));
+    $raw = Query::raw(sprintf("%s(%s)", $name, $expression));
     
     if ($type === NULL) {
       $type = $this->schema->getTable($table_name)->getColumn($column_name)->getType();

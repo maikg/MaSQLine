@@ -3,6 +3,7 @@ namespace MaSQLine\Queries;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Types\Type;
 
 class SelectQuery extends ClausesQuery {
   protected function getClauses() {
@@ -35,8 +36,18 @@ class SelectQuery extends ClausesQuery {
   }
   
   
-  public function selectAggr($name, $field_format, $type = NULL) {
-    $this->getClause('SELECT')->addAggregateColumn($name, $field_format, $type);
+  public function selectAggr($name, $field_format, $alias = NULL, $type = NULL) {
+    $this->getClause('SELECT')->addAggregateColumn($name, $field_format, $alias, $type);
+    return $this;
+  }
+  
+  
+  public function selectCount($field_format = NULL, $alias = NULL) {
+    if ($field_format === NULL) {
+      $field_format = Query::raw('*');
+    }
+    $this->getClause('SELECT')->addAggregateColumn('COUNT', $field_format, $alias, Type::getType('integer'));
+    
     return $this;
   }
   
