@@ -23,6 +23,16 @@ class FromClause extends Clause {
   
   
   public function addInnerJoin($origin, $target) {
+    $this->addJoin('INNER JOIN', $origin, $target);
+  }
+  
+  
+  public function addLeftJoin($origin, $target) {
+    $this->addJoin('LEFT JOIN', $origin, $target);
+  }
+  
+  
+  private function addJoin($join_prefix, $origin, $target) {
     $conditions_clause = new ConditionsClause($this->schema, 'AND');
     
     if ($target instanceof \Closure) {
@@ -35,7 +45,7 @@ class FromClause extends Clause {
       $conditions_clause->equalColumns($origin, $target);
     }
     
-    $this->joins[] = array('INNER JOIN', $target_table_name, $conditions_clause);
+    $this->joins[] = array($join_prefix, $target_table_name, $conditions_clause);
   }
   
   

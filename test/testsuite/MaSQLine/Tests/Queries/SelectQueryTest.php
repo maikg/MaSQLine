@@ -374,30 +374,36 @@ SQL;
   }
   
   
-  public function testSimpleInnerJoin() {
+  /**
+   * @dataProvider joinProvider
+   */
+  public function testSimpleInnerJoin($join_method, $join_clause) {
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select('comments.id', 'posts.title')
       ->from('comments')
-      ->innerJoin('comments.post_id', 'posts.id')
+      ->$join_method('comments.post_id', 'posts.id')
       ->toSQL();
     
     $expected_sql = <<<SQL
 SELECT `comments`.`id`, `posts`.`title`
 FROM `comments`
-INNER JOIN `posts` ON `comments`.`post_id` = `posts`.`id`
+%s `posts` ON `comments`.`post_id` = `posts`.`id`
 SQL;
     
-    $this->assertEquals($expected_sql, $sql);
+    $this->assertEquals(sprintf($expected_sql, $join_clause), $sql);
   }
   
   
-  public function testComplexInnerJoin() {
+  /**
+   * @dataProvider joinProvider
+   */
+  public function testComplexJoin($join_method, $join_clause) {
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select('comments.id', 'posts.title')
       ->from('comments')
-      ->innerJoin('posts', function($conditions) {
+      ->$join_method('posts', function($conditions) {
         $conditions
           ->equalColumns('comments.post_id', 'posts.id')
           ->equals('posts.author_id', 2);
@@ -407,10 +413,10 @@ SQL;
     $expected_sql = <<<SQL
 SELECT `comments`.`id`, `posts`.`title`
 FROM `comments`
-INNER JOIN `posts` ON (`comments`.`post_id` = `posts`.`id` AND `posts`.`author_id` = ?)
+%s `posts` ON (`comments`.`post_id` = `posts`.`id` AND `posts`.`author_id` = ?)
 SQL;
     
-    $this->assertEquals($expected_sql, $sql);
+    $this->assertEquals(sprintf($expected_sql, $join_clause), $sql);
     
     $expected_values = array(2);
     $this->assertEquals($expected_values, $query->getParamValues());
@@ -420,32 +426,44 @@ SQL;
   }
   
   
+  public static function joinProvider() {
+    return array(
+      array('innerJoin', 'INNER JOIN'),
+      array('leftJoin', 'LEFT JOIN')
+    );
+  }
+  
+  
   public function testMixWhereAndJoinParams() {
-    $this->markTestIncomplete();
-    
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select('comments.id', 'posts.title')
       ->from('comments')
+      ->where(function($where) {
+        $where->like('comments.body', 'Foo%');
+      })
       ->innerJoin('posts', function($conditions) {
         $conditions
           ->equalColumns('comments.post_id', 'posts.id')
           ->equals('posts.author_id', 2);
       })
+      ->innerJoin('posts.author_id', 'authors.id')
       ->toSQL();
     
     $expected_sql = <<<SQL
 SELECT `comments`.`id`, `posts`.`title`
 FROM `comments`
 INNER JOIN `posts` ON (`comments`.`post_id` = `posts`.`id` AND `posts`.`author_id` = ?)
+INNER JOIN `authors` ON `posts`.`author_id` = `authors`.`id`
+WHERE `comments`.`body` LIKE ?
 SQL;
     
     $this->assertEquals($expected_sql, $sql);
     
-    $expected_values = array(2);
+    $expected_values = array(2, 'Foo%');
     $this->assertEquals($expected_values, $query->getParamValues());
     
-    $expected_types = array(Type::getType('integer'));
+    $expected_types = array(Type::getType('integer'), Type::getType('text'));
     $this->assertEquals($expected_types, $query->getParamTypes());
   }
 }

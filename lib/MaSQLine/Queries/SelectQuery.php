@@ -52,6 +52,13 @@ class SelectQuery extends ClausesQuery {
   }
   
   
+  public function leftJoin($origin, $target) {
+    $this->getClause('FROM')->addLeftJoin($origin, $target);
+    
+    return $this;
+  }
+  
+  
   public function where(\Closure $setup_where) {
     $setup_where($this->getClause('WHERE'));
     
