@@ -19,6 +19,11 @@ class SelectQueryTest extends \PHPUnit_Framework_TestCase {
       new \Doctrine\DBAL\Configuration()
     );
     $this->schema = require \TEST_ROOT_PATH . '/fixtures/schema.php';
+    
+    $queries = $this->schema->toSql($this->conn->getDatabasePlatform());
+    foreach ($queries as $query) {
+      $this->conn->executeQuery($query);
+    }
   }
   
   
@@ -557,5 +562,60 @@ SQL;
       'last_posted_at'             => Type::getType('datetime')
     );
     $this->assertEquals($expected_types, $query->getConversionTypes());
+  }
+  
+  
+  private function insertPostFixtures() {
+    $this->conn->insert(
+      'posts',
+      array(
+        'author_id' => 2,
+        'title' => 'Foo',
+        'body' => 'Bar',
+        'posted_at' => new \DateTime()
+      ),
+      array(
+        Type::getType('integer'),
+        Type::getType('string'),
+        Type::getType('text'),
+        Type::getType('datetime')
+      )
+    );
+    
+    $this->conn->insert(
+      'posts',
+      array(
+        'author_id' => 3,
+        'title' => 'FooBar',
+        'body' => 'Test article',
+        'posted_at' => new \DateTime()
+      ),
+      array(
+        Type::getType('integer'),
+        Type::getType('string'),
+        Type::getType('text'),
+        Type::getType('datetime')
+      )
+    );
+  }
+  
+  
+  public function testFetchAll() {
+    $this->insertPostFixtures();
+    
+    $query = new SelectQuery($this->conn, $this->schema);
+    $rows = $query
+      ->select('posts.*')
+      ->from('posts')
+      ->orderBy('posts.author_id')
+      ->fetchAll();
+    
+    $this->assertCount(2, $rows);
+    
+    $this->assertSame(1, $rows[0]['id']);
+    $this->assertSame(2, $rows[0]['author_id']);
+    $this->assertSame('Foo', $rows[0]['title']);
+    $this->assertSame('Bar', $rows[0]['body']);
+    $this->assertInstanceOf('\DateTime', $rows[0]['posted_at']);
   }
 }

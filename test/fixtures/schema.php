@@ -23,9 +23,6 @@ $__create_schema = function() {
   $comments->addColumn('posted_at', 'datetime');
   $comments->setPrimaryKey(array('id'));
   
-  $posts->addForeignKeyConstraint('authors', array('author_id'), array('id'));
-  $comments->addForeignKeyConstraint('posts', array('post_id'), array('id'));
-  
   return $schema;
 };
 
