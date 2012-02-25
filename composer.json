@@ -1,5 +1,20 @@
 {
+  "name": "maikg/MaSQLine",
+  "type": "library",
+  "description": "Utility library built on top of Doctrine DBAL.",
+  "keywords": ["database", "sql", "dbal", "persistence", "queryobject"],
+  "authors": [
+    {
+      "name": "Maik Gosenshuis",
+      "email": "maik@gosenshuis.nl"
+    }
+  ],
   "require": {
-    "doctrine/dbal": "2.2.1"
+    "doctrine/dbal": "2.2.*"
+  },
+  "autoload": {
+    "psr-0": {
+      "MaSQLine": "lib"
+    }
   }
 }
