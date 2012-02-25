@@ -5,28 +5,7 @@ use MaSQLine\Queries\Query;
 use MaSQLine\Queries\SelectQuery;
 use Doctrine\DBAL\Types\Type;
 
-class SelectQueryTest extends \PHPUnit_Framework_TestCase {
-  private $schema;
-  
-  
-  public function setUp() {
-    $this->conn = \Doctrine\DBAL\DriverManager::getConnection(
-      array(
-        'driver'    => 'pdo_sqlite',
-        'db_name'   => 'dbalext_tests',
-        'memory'    => true
-      ),
-      new \Doctrine\DBAL\Configuration()
-    );
-    $this->schema = require \TEST_ROOT_PATH . '/fixtures/schema.php';
-    
-    $queries = $this->schema->toSql($this->conn->getDatabasePlatform());
-    foreach ($queries as $query) {
-      $this->conn->executeQuery($query);
-    }
-  }
-  
-  
+class SelectQueryTest extends \MaSQLine\Tests\TestCase {
   public function testSimple() {
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
@@ -566,41 +545,6 @@ SQL;
       'post_id_count'               => Type::getType('integer')
     );
     $this->assertEquals($expected_types, $query->getConversionTypes());
-  }
-  
-  
-  private function insertPostFixtures() {
-    $this->conn->insert(
-      'posts',
-      array(
-        'author_id' => 2,
-        'title' => 'Foo',
-        'body' => 'Bar',
-        'posted_at' => new \DateTime()
-      ),
-      array(
-        Type::getType('integer'),
-        Type::getType('string'),
-        Type::getType('text'),
-        Type::getType('datetime')
-      )
-    );
-    
-    $this->conn->insert(
-      'posts',
-      array(
-        'author_id' => 3,
-        'title' => 'FooBar',
-        'body' => 'Test article',
-        'posted_at' => new \DateTime()
-      ),
-      array(
-        Type::getType('integer'),
-        Type::getType('string'),
-        Type::getType('text'),
-        Type::getType('datetime')
-      )
-    );
   }
   
   

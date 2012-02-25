@@ -1,8 +1,6 @@
 <?PHP
 namespace MaSQLine\Queries;
 
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
 
 class SelectQuery extends ClausesQuery {
