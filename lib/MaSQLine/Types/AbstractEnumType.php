@@ -1,5 +1,5 @@
 <?PHP
-namespace DBALExt\Types;
+namespace MaSQLine\Types;
 
 use Doctrine\DBAL\Types\SmallIntType;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
@@ -9,7 +9,7 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  * ENUM type requires a separate implementation. This abstract base class takes most of the
  * pain out of creating one.
  *
- * @package DBALExt\Types
+ * @package MaSQLine\Types
  */
 abstract class AbstractEnumType extends SmallIntType {
   protected static $name;

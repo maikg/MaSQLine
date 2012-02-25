@@ -1,7 +1,7 @@
 <?PHP
-namespace DBALExt\Queries\Clauses;
+namespace MaSQLine\Queries\Clauses;
 
-use DBALExt\Queries\Query;
+use MaSQLine\Queries\Query;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
 

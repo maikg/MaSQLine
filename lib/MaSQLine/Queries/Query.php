@@ -1,5 +1,5 @@
 <?PHP
-namespace DBALExt\Queries;
+namespace MaSQLine\Queries;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;

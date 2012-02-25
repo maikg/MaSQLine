@@ -1,8 +1,8 @@
 <?PHP
-namespace DBALExt\Tests\Queries;
+namespace MaSQLine\Tests\Queries;
 
-use DBALExt\Queries\Query;
-use DBALExt\Queries\SelectQuery;
+use MaSQLine\Queries\Query;
+use MaSQLine\Queries\SelectQuery;
 use Doctrine\DBAL\Types\Type;
 
 class SelectQueryTest extends \PHPUnit_Framework_TestCase {
@@ -393,6 +393,36 @@ SQL;
   
   
   public function testComplexInnerJoin() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('comments.id', 'posts.title')
+      ->from('comments')
+      ->innerJoin('posts', function($conditions) {
+        $conditions
+          ->equalColumns('comments.post_id', 'posts.id')
+          ->equals('posts.author_id', 2);
+      })
+      ->toSQL();
+    
+    $expected_sql = <<<SQL
+SELECT `comments`.`id`, `posts`.`title`
+FROM `comments`
+INNER JOIN `posts` ON (`comments`.`post_id` = `posts`.`id` AND `posts`.`author_id` = ?)
+SQL;
+    
+    $this->assertEquals($expected_sql, $sql);
+    
+    $expected_values = array(2);
+    $this->assertEquals($expected_values, $query->getParamValues());
+    
+    $expected_types = array(Type::getType('integer'));
+    $this->assertEquals($expected_types, $query->getParamTypes());
+  }
+  
+  
+  public function testMixWhereAndJoinParams() {
+    $this->markTestIncomplete();
+    
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select('comments.id', 'posts.title')

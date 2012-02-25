@@ -1,8 +1,8 @@
 <?PHP
-namespace DBALExt\Queries\Clauses;
+namespace MaSQLine\Queries\Clauses;
 
 use Doctrine\DBAL\Schema\Schema;
-use DBALExt\Queries\Query;
+use MaSQLine\Queries\Query;
 
 class FromClause extends Clause {
   private $schema;

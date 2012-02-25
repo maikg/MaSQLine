@@ -1,9 +1,9 @@
 <?PHP
-namespace DBALExt\Queries\Clauses;
+namespace MaSQLine\Queries\Clauses;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
-use DBALExt\Queries\Query;
+use MaSQLine\Queries\Query;
 
 class ConditionsClause extends Clause {
   private $schema;

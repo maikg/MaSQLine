@@ -1,5 +1,5 @@
 <?PHP
-namespace DBALExt\Queries\Clauses;
+namespace MaSQLine\Queries\Clauses;
 
 abstract class Clause {
   abstract public function toSQL();
