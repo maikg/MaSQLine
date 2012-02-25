@@ -23,9 +23,17 @@ abstract class Query {
   }
   
   
-  public static function convertFieldFormat($field_format) {
-    if (!preg_match(Query::FIELD_FORMAT_REGEX, $field_format, $regex_matches)) {
-      throw new \InvalidArgumentException(sprintf("Got invalid field format: %s", $field_format));
+  public static function convertFieldFormat($field_format, $default_table_name = NULL) {
+    try {
+      if (!preg_match(Query::FIELD_FORMAT_REGEX, $field_format, $regex_matches)) {
+        throw new \InvalidArgumentException(sprintf("Got invalid field format: %s", $field_format));
+      }
+    }
+    catch (\InvalidArgumentException $e) {
+      if ($default_table_name === NULL ||
+          !preg_match(Query::FIELD_FORMAT_REGEX, sprintf("`%s`.`%s`", $default_table_name, $field_format), $regex_matches)) {
+        throw $e;
+      }
     }
     
     list(, $table_name, $column_name) = $regex_matches;

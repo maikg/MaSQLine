@@ -1,14 +1,18 @@
 <?PHP
 namespace MaSQLine\Queries;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\Schema;
+
 class InsertQuery extends ManipulationQuery {
   private $table_name;
   private $values = array();
   
   
-  public function setTableName($table_name) {
+  public function __construct(Connection $conn, Schema $schema, $table_name) {
+    parent::__construct($conn, $schema);
+    
     $this->table_name = $table_name;
-    return $this;
   }
   
   
@@ -19,9 +23,6 @@ class InsertQuery extends ManipulationQuery {
   
   
   public function toSQL() {
-    if ($this->table_name === NULL) {
-      throw new \InvalidArgumentException("Table name is not set.");
-    }
     if (count($this->values) == 0) {
       throw new \InvalidArgumentException("No values set.");
     }

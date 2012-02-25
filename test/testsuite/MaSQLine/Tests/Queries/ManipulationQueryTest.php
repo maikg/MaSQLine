@@ -3,6 +3,7 @@ namespace MaSQLine\Tests\Queries;
 
 use MaSQLine\Queries\Query;
 use MaSQLine\Queries\InsertQuery;
+use MaSQLine\Queries\UpdateQuery;
 use MaSQLine\Queries\DeleteQuery;
 use Doctrine\DBAL\Types\Type;
 
@@ -10,9 +11,8 @@ class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
   public function testInsert() {
     $dt = new \DateTime();
     
-    $query = new InsertQuery($this->conn, $this->schema);
+    $query = new InsertQuery($this->conn, $this->schema, 'posts');
     $sql = $query
-      ->setTableName('posts')
       ->setValues(array(
         'author_id'   => 2,
         'title'       => 'Foo',
@@ -44,9 +44,8 @@ class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
    * @expectedException \Doctrine\DBAL\Schema\SchemaException
    */
   public function testInvalidColumn() {
-    $query = new InsertQuery($this->conn, $this->schema);
+    $query = new InsertQuery($this->conn, $this->schema, 'posts');
     $sql = $query
-      ->setTableName('posts')
       ->setValues(array(
         'author_id'   => 2,
         'title'       => 'Foo',
@@ -62,9 +61,8 @@ class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
     
     $dt = new \DateTime('1 January 2000 00:00:00');
     
-    $query = new DeleteQuery($this->conn, $this->schema);
+    $query = new DeleteQuery($this->conn, $this->schema, 'posts');
     $query
-      ->setTableName('posts')
       ->where(function($where) use ($dt) {
         $where->smallerThan('posts.posted_at', $dt);
       });
@@ -78,6 +76,37 @@ class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
     $this->assertEquals($expected_values, $query->getParamValues());
     
     $expected_types = array(Type::getType('datetime'));
+    $this->assertEquals($expected_types, $query->getParamTypes());
+    
+    $row_count = $query->execute();
+    $this->assertEquals(1, $row_count);
+  }
+  
+  
+  public function testUpdate() {
+    $this->insertPostFixtures();
+    
+    $dt = new \DateTime();
+    
+    $query = new UpdateQuery($this->conn, $this->schema, 'posts');
+    $query
+      ->setValues(array(
+        'author_id' => 4,
+        'posted_at' => $dt
+      ))
+      ->where(function($where) {
+        $where->equals('posts.id', 1);
+      });
+    
+    $sql = $query->toSQL();
+    
+    $expected_sql = "UPDATE `posts` SET `author_id` = ?, `posted_at` = ? WHERE `posts`.`id` = ?";
+    $this->assertEquals($expected_sql, $sql);
+    
+    $expected_values = array(4, $dt, 1);
+    $this->assertEquals($expected_values, $query->getParamValues());
+    
+    $expected_types = array(Type::getType('integer'), Type::getType('datetime'), Type::getType('integer'));
     $this->assertEquals($expected_types, $query->getParamTypes());
     
     $row_count = $query->execute();

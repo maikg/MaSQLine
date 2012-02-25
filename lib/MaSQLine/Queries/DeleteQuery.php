@@ -6,19 +6,14 @@ use Doctrine\DBAL\Schema\Schema;
 
 class DeleteQuery extends ManipulationQuery {
   private $table_name;
+  private $where_clause;
   
   
-  public function __construct(Connection $conn, Schema $schema) {
+  public function __construct(Connection $conn, Schema $schema, $table_name) {
     parent::__construct($conn, $schema);
     
-    $this->where_clause = new Clauses\ConditionsClause($this->schema, 'AND');
-  }
-  
-  
-  public function setTableName($table_name) {
     $this->table_name = $table_name;
-    
-    return $this;
+    $this->where_clause = new Clauses\ConditionsClause($this->schema, 'AND');
   }
   
   
@@ -30,10 +25,6 @@ class DeleteQuery extends ManipulationQuery {
   
   
   public function toSQL() {
-    if ($this->table_name === NULL) {
-      throw new \InvalidArgumentException("Table name is not set.");
-    }
-    
     if ($this->where_clause->isEmpty()) {
       return sprintf("DELETE FROM `%s`", $this->table_name);
     }
