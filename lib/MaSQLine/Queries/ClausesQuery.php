@@ -4,7 +4,7 @@ namespace MaSQLine\Queries;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 
-abstract class ClausesQuery extends Query {
+abstract class ClausesQuery extends FetchQuery {
   private $clauses;
   
   

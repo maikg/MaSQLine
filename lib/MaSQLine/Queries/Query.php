@@ -3,9 +3,8 @@ namespace MaSQLine\Queries;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
-use \Doctrine\DBAL\Types\Type;
 
-class Query {
+abstract class Query {
   const RAW_PACKED_REGEX = '/^\{\{\{(.+?)\}\}\}$/';
   const FIELD_FORMAT_REGEX = '/^([^.]+)\.([^.]+)$/';
   
@@ -47,8 +46,6 @@ class Query {
   protected $conn;
   protected $schema;
   
-  private $conversion_types = array();
-  
   
   public function __construct(Connection $conn, Schema $schema) {
     $this->conn = $conn;
@@ -56,7 +53,11 @@ class Query {
   }
   
   
-  protected function setConversionType($column_alias, $type) {
-    $this->conversion_types[$column_alias] = $type;
-  }
+  abstract public function toSQL();
+  
+  
+  abstract public function getParamValues();
+  
+  
+  abstract public function getParamTypes();
 }
