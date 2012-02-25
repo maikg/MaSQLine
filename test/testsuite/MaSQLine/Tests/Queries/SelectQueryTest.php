@@ -484,4 +484,22 @@ SQL;
     
     $this->assertEquals($expected_sql, $sql);
   }
+  
+  
+  public function testOrderBy() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('posts.id', 'posts.title')
+      ->from('posts')
+      ->orderBy('-posts.posted_at', '+title', 'id')
+      ->toSQL();
+    
+    $expected_sql = <<<SQL
+SELECT `posts`.`id`, `posts`.`title`
+FROM `posts`
+ORDER BY `posts`.`posted_at` DESC, `title` ASC, `id` ASC
+SQL;
+    
+    $this->assertEquals($expected_sql, $sql);
+  }
 }

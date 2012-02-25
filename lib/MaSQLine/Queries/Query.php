@@ -35,6 +35,15 @@ class Query {
   }
   
   
+  public static function quoteFieldFormat($field_format) {
+    $parts = explode('.', $field_format);
+    $parts = array_map(function($part) {
+      return sprintf("`%s`", $part);
+    }, $parts);
+    return implode('.', $parts);
+  }
+  
+  
   protected $conn;
   protected $schema;
   

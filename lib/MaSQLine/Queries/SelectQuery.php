@@ -12,7 +12,7 @@ class SelectQuery extends ClausesQuery {
       'WHERE'       => new Clauses\ConditionsClause($this->schema, 'AND', 'WHERE'),
       // 'GROUP BY'    => NULL,
       // 'HAVING'      => NULL,
-      // 'ORDER BY'    => NULL,
+      'ORDER BY'    => new Clauses\OrderByClause(),
       'LIMIT'       => new Clauses\LimitClause()
     );
   }
@@ -70,6 +70,27 @@ class SelectQuery extends ClausesQuery {
   
   public function offset($offset) {
     $this->getClause('LIMIT')->setOffset($offset);
+    return $this;
+  }
+  
+  
+  public function orderBy() {
+    $args = func_get_args();
+    
+    foreach ($args as $arg) {
+      $sort_dir = NULL;
+      if ($arg{0} == '+') {
+        $sort_dir = Clauses\OrderByClause::SORT_ASC;
+        $arg = substr($arg, 1);
+      }
+      else if ($arg{0} == '-') {
+        $sort_dir = Clauses\OrderByClause::SORT_DESC;
+        $arg = substr($arg, 1);
+      }
+      
+      $this->getClause('ORDER BY')->addColumn($arg, $sort_dir);
+    }
+    
     return $this;
   }
   
