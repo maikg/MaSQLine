@@ -21,7 +21,6 @@ class SelectQuery extends ClausesQuery {
   public function select() {
     $args = func_get_args();
     
-    $this->getClause('SELECT')->clearColumns();
     foreach ($args as $arg) {
       $this->getClause('SELECT')->addColumn($arg);
     }
@@ -30,10 +29,14 @@ class SelectQuery extends ClausesQuery {
   }
   
   
-  public function addSelectColumn($field_format, $type = NULL) {
-    $select_clause = $this->getClause('SELECT');
-    $select_clause->addColumn($field_format, $type);
-    
+  public function selectColumn($field_format, $type = NULL) {
+    $this->getClause('SELECT')->addColumn($field_format, $type);
+    return $this;
+  }
+  
+  
+  public function selectAggr($name, $field_format, $type = NULL) {
+    $this->getClause('SELECT')->addAggregateColumn($name, $field_format, $type);
     return $this;
   }
   

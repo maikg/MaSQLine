@@ -104,7 +104,7 @@ SQL;
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select()
-      ->addSelectColumn('posts.id', Type::getType('string'))
+      ->selectColumn('posts.id', Type::getType('string'))
       ->from('posts')
       ->toSQL();
       
@@ -126,7 +126,7 @@ SQL;
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select()
-      ->addSelectColumn('posts.id', 'string')
+      ->selectColumn('posts.id', 'string')
       ->from('posts')
       ->toSQL();
       
@@ -148,7 +148,7 @@ SQL;
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select()
-      ->addSelectColumn(array(Query::raw('COUNT(*)') => 'num'), 'integer')
+      ->selectColumn(array(Query::raw('COUNT(*)') => 'num'), 'integer')
       ->from('posts')
       ->toSQL();
       
@@ -508,7 +508,7 @@ SQL;
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select('posts.author_id')
-      ->addSelectColumn(array(Query::raw('MIN(`posts`.`posted_at`)') => 'first_posted_at'), 'datetime')
+      ->selectAggr('MIN', array('posts.posted_at' => 'first_posted_at'))
       ->from('posts')
       ->groupBy('posts.author_id')
       ->having(function($having) {
@@ -530,5 +530,32 @@ SQL;
 
     $expected_types = array(Type::getType('integer'));
     $this->assertEquals($expected_types, $query->getParamTypes());
+  }
+  
+  
+  public function testAggregateShortcuts() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('posts.author_id')
+      ->selectAggr('MIN', 'posts.posted_at')
+      ->selectAggr('MAX', array('posts.posted_at' => 'last_posted_at'))
+      ->from('posts')
+      ->groupBy('posts.author_id')
+      ->toSQL();
+    
+    $expected_sql = <<<SQL
+SELECT `posts`.`author_id`, MIN(`posts`.`posted_at`), MAX(`posts`.`posted_at`) AS `last_posted_at`
+FROM `posts`
+GROUP BY `posts`.`author_id`
+SQL;
+    
+    $this->assertEquals(sprintf($expected_sql, 'MIN'), $sql);
+    
+    $expected_types = array(
+      'author_id'                  => Type::getType('integer'),
+      'MIN(`posts`.`posted_at`)'   => Type::getType('datetime'),
+      'last_posted_at'             => Type::getType('datetime')
+    );
+    $this->assertEquals($expected_types, $query->getConversionTypes());
   }
 }
