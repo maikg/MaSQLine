@@ -95,6 +95,7 @@ $query = new SelectQuery($conn, $schema);
 $sql = $query
     ->select(
         'posts.*',
+        // Specify an alias by wrapping in an array.
         array('authors.username' => 'author_username')
     )
     ->from('posts')
@@ -144,6 +145,36 @@ $titles = $query->fetchList('title');
 // Fetch only a single value.
 $title = $query->fetchValue('title'); // $title contains the value of the 'title' column of the first row.
 $first = $query->fetchValue(); // $first contains the value of the first column in the SELECT statement for the first row.
+?>
+```
+
+Some more specialized examples below.
+
+```php
+<?PHP
+// Specifying custom types and using raw SQL expressions. Raw SQL expressions are left intact by
+// the query builder.
+$query
+    // ...
+    ->selectColumn('posts.id', 'integer')
+    ->having(function($having) {
+        $having->greaterThan(Query::raw('COUNT(*)'), 3, 'integer')
+    })
+    // ...
+
+// Selecting aggregate columns.
+$query
+    ->select('posts.author_id')
+    
+    // Uses the same type as posts.posted_at. You can specify a custom type as the fourth parameter.
+    ->selectAggr('MIN', 'posts.posted_at', 'first_posted_at')
+    ->selectAggr('MAX', 'posts.posted_at', 'last_posted_at')
+    
+    // First column specifies the column to count. If set to NULL, uses COUNT(*).
+    ->selectCount(NULL, 'num_posts')
+    
+    ->from('posts')
+    ->groupBy('author_id');
 ?>
 ```
 
