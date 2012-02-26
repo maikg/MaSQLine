@@ -249,6 +249,29 @@ $affected_row_count = $query->execute();
 ?>
 ```
 
+#### Wrapper Class
+
+MaSQLine provides a wrapper class to encapsulate the database connection and schema instance. This class also provides
+factory methods to create query object instances that automatically inject the database connection and schema into the
+query objects' constructors. Moreover, these factory methods provide some syntactic sugar by allowing you to create, set
+up and execute the query in one long chain of method calls.
+
+```php
+<?PHP
+$db = new \MaSQLine\DB($conn, $schema);
+
+$db->createDeleteQuery('posts')
+    ->where(function($where) {
+        $where->equals('posts.id', 2);
+    })
+    ->execute();
+?>
+```
+
+The wrapper class also wraps the `transactional()` method of `\Doctrine\DBAL\Connection`, passing itself to the closure
+rather than the connection instance. You can always access the underlying DBAL connection by calling `getConnection()`
+on the wrapper class.
+
 ## Types
 
 MaSQLine uses the DBAL type system underneath, which is extensible. This allows you to define custom types to use
@@ -267,4 +290,5 @@ otherwise you will get out-of-sync with older data!
 * Add API documentation.
 * Support for subqueries (by nesting query objects).
 * Support for platform-specific flags (f.e. INSERT DELAYED for MySQL?)
+* Cross-database queries.
 * UNION query object (depends on subquery support).
