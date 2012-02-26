@@ -31,6 +31,32 @@ Doctrine's DBAL library provides a nice base to work from, as it helps with code
 builds on top of DBAL to introduce several ORM features that are missing from DBAL, without pulling in a full ORM
 library.
 
+## Installation
+
+MaSQLine uses [Composer](http://packagist.org/about-composer) to manage its dependencies. You can
+[install](https://github.com/composer/composer/blob/master/README.md) Composer system-wide or just add `composer.phar`
+to the root of this project after cloning. Afterwards, you simply call `php composer.phar install` in the project
+root to install the necessary dependencies.
+
+MaSQLine is not up at [Packagist](http://packagist.org/) at the moment, but you can easily specify MaSQLine as a
+dependency in your own `composer.json` by adding this GitHub project as a repository.
+
+```json
+{
+    // ...
+    "repositories": [
+    {
+      "type": "vcs",
+      "url": "git://github.com/maikg/MaSQLine.git"
+    }
+    ],
+    "require": {
+      "maikg/masqline": "*"
+    }
+    // ...
+}
+```
+
 ## Query Objects
 
 DBAL provides a `QueryBuilder`, but this class doesn't do any sort of type conversion automatically. All query objects
@@ -46,7 +72,7 @@ well as the query results are properly type-converted.
 > and [here](http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/schema-manager.html).
 
 When building queries, the query objects need to know what types to map the selected columns and condition params to.
-Most of the time, this can be inferred from the `Schema` and by following a few naming conventions when referring to
+Most of the time, this can be inferred from the `Schema` by following a few naming conventions when referring to
 columns.
 
 ### Usage
@@ -103,6 +129,8 @@ $sql = $query
         array('authors.username' => 'author_username')
     )
     ->from('posts')
+    // Shortcut join syntax, which you can read as follows: "[local_table].[foreign_key]
+    // maps to [foreign_table].[primary_key]". You can also use leftJoin().
     ->innerJoin('posts.author_id', 'authors.id')
     ->where(function($where) {
         $where
@@ -132,8 +160,8 @@ LIMIT 20,10
 ```
 
 The placeholder values are set accordingly, and can be extracted from the query through the `getParamValues()` method.
-Types can be fetched using `getParamTypes()`. Both of these methods return arrays with their values at the same position
-as their corresponding placeholder in the query.
+Types can be fetched using `getParamTypes()`. Both of these methods return arrays with their values in the same order
+as their corresponding placeholders in the query.
 
 You can also execute query objects directly instead of converting them to an SQL statement.
 
@@ -191,6 +219,18 @@ $query
     
     ->from('posts')
     ->groupBy('author_id');
+
+// Complex join conditions.
+$query
+    // ...
+    ->from('posts')
+    // Note that you specify the table to join as the first argument using this syntax.
+    ->leftJoin('authors', function($conditions) {
+        $conditions
+            ->equalColumns('posts.author_id', 'authors.id')
+            ->in('authors.id', array(2, 3));
+    })
+    // ...
 ?>
 ```
 
