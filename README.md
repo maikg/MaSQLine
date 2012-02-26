@@ -5,6 +5,10 @@ communication manually and using full-blown object-relational mapping (ORM).
 
 MaSQLine requires PHP 5.3+.
 
+> **WARNING:** MaSQLine currently doesn't work with the latest 2.2.1 release of DBAL (and probably not with any DBAL
+> release) due to a bug in DBAL. This is fixed by (my pull request)[https://github.com/doctrine/dbal/pull/120], but
+> until then, you'll have to apply this fix manually after installing the DBAL dependency.
+
 ## Why?
 
 What I don't like about using ORM is that eventually, you end up with an API that isn't completely transparent about
@@ -34,7 +38,7 @@ defined in MaSQLine expect a DBAL database connection, as well as a `\Doctrine\D
 necessary type information is extracted from this schema when building queries. This means that any query conditions as
 well as the query results are properly type-converted.
 
-> NOTE: You can create the `Schema` instance manually, which I prefer to do, or create one on-the-fly from your
+> **NOTE:** You can create the `Schema` instance manually, which I prefer to do, or create one on-the-fly from your
 > current database schema by using DBAL's `SchemaManager`. Doing this has severe performance implications, so I suggest
 > hardcoding your schema in a file somewhere. You can easily convert `Schema` instances to SQL DDL statements and
 > even compare them to another schema version and calculate the DDL statements to migrate between them.
