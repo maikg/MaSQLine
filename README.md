@@ -6,7 +6,7 @@ communication manually and using full-blown object-relational mapping (ORM).
 MaSQLine requires PHP 5.3+.
 
 > **WARNING:** MaSQLine currently doesn't work with the latest 2.2.1 release of DBAL (and probably not with any DBAL
-> release) due to a bug in DBAL. This is fixed by (my pull request)[https://github.com/doctrine/dbal/pull/120], but
+> release) due to a bug in DBAL. This is fixed by [my pull request](https://github.com/doctrine/dbal/pull/120), but
 > until then, you'll have to apply this fix manually after installing the DBAL dependency.
 
 ## Why?
