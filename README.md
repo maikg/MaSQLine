@@ -162,11 +162,15 @@ Some more specialized examples below.
 ```php
 <?PHP
 // Specifying custom types and using raw SQL expressions. Raw SQL expressions are left intact by
-// the query builder.
+// the query builder. Custom types can always be defined, in which case they override the inferred
+// type. In some cases, like when using raw SQL expressions, an InvalidArgumentException will be
+// thrown if no type is specified, since it can not be inferred from the schema.
 $query
     // ...
-    ->selectColumn('posts.id', 'integer')
+    // When executing this query, the 'id' column in the result will be a string instead of an int.
+    ->selectColumn('posts.id', 'string')
     ->having(function($having) {
+        // Not a column of the form "[table_name].[column_name]", so specifying a type is mandatory.
         $having->greaterThan(Query::raw('COUNT(*)'), 3, 'integer')
     })
     // ...
