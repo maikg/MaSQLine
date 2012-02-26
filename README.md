@@ -180,7 +180,7 @@ $titles = $query->fetchList('title');
 // Fetch only the first column of all results.
 $firsts = $query->fetchList();
 
-// Fetch only a single named column from all the row.
+// Fetch only a single named column from the first row.
 $title = $query->fetchValue('title');
 
 // Fetch only the the first selected column of the first row.
@@ -260,7 +260,8 @@ up and execute the query in one long chain of method calls.
 <?PHP
 $db = new \MaSQLine\DB($conn, $schema);
 
-$db->createDeleteQuery('posts')
+$db
+    ->createDeleteQuery('posts')
     ->where(function($where) {
         $where->equals('posts.id', 2);
     })

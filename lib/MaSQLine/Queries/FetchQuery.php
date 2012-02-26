@@ -19,6 +19,9 @@ abstract class FetchQuery extends Query {
   
   
   public function fetchOne() {
+    // Since we're only going to fetch one row, we might as well limit the request.
+    $this->limit(1);
+    
     $row = $this->conn
       ->executeQuery($this->toSQL(), $this->getParamValues(), $this->getParamTypes())
       ->fetch(\PDO::FETCH_ASSOC);
