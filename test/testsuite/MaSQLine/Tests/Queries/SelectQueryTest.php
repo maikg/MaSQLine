@@ -583,11 +583,12 @@ SQL;
     $this->insertPostFixtures();
     
     $query = new SelectQuery($this->conn, $this->schema);
-    $rows = $query
+    $query
       ->select('posts.*')
       ->from('posts')
-      ->orderBy('posts.id')
-      ->fetchAll();
+      ->orderBy('posts.id');
+      
+    $rows = $query->fetchAll();
     
     $this->assertCount(2, $rows);
     
@@ -596,6 +597,11 @@ SQL;
     $this->assertSame('Foo', $rows[0]['title']);
     $this->assertSame('Bar', $rows[0]['body']);
     $this->assertInstanceOf('\DateTime', $rows[0]['posted_at']);
+    
+    $rows = $query->fetchAll('id');
+    $this->assertEquals(array(1, 2), array_keys($rows));
+    
+    $this->assertSame('FooBar', $rows[2]['title']);
   }
   
   
@@ -639,6 +645,24 @@ SQL;
       ->fetchList();
     
     $this->assertEquals(array('Foo', 'FooBar'), $rows);
+    
+    $query = new SelectQuery($this->conn, $this->schema);
+    $rows = $query
+      ->select('posts.*')
+      ->from('posts')
+      ->orderBy('-posts.id')
+      ->fetchList('title', 'id');
+    
+    $this->assertEquals(array(1 => 'Foo', 2 => 'FooBar'), $rows);
+    
+    $query = new SelectQuery($this->conn, $this->schema);
+    $rows = $query
+      ->select('posts.title', 'posts.id')
+      ->from('posts')
+      ->orderBy('-posts.id')
+      ->fetchList(NULL, 'id');
+    
+    $this->assertEquals(array(1 => 'Foo', 2 => 'FooBar'), $rows);
   }
   
   

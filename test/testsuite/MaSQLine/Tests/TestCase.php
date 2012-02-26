@@ -30,12 +30,14 @@ class TestCase extends \PHPUnit_Framework_TestCase {
     $this->conn->insert(
       'posts',
       array(
+        'id' => 1,
         'author_id' => 2,
         'title' => 'Foo',
         'body' => 'Bar',
         'posted_at' => new \DateTime('31 December 1999 23:59:59')
       ),
       array(
+        Type::getType('integer'),
         Type::getType('integer'),
         Type::getType('string'),
         Type::getType('text'),
@@ -46,12 +48,14 @@ class TestCase extends \PHPUnit_Framework_TestCase {
     $this->conn->insert(
       'posts',
       array(
+        'id' => 2,
         'author_id' => 3,
         'title' => 'FooBar',
         'body' => 'Test article',
         'posted_at' => new \DateTime('1 January 2000 00:00:00')
       ),
       array(
+        Type::getType('integer'),
         Type::getType('integer'),
         Type::getType('string'),
         Type::getType('text'),

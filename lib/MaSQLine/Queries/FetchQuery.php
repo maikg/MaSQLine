@@ -5,13 +5,20 @@ abstract class FetchQuery extends Query {
   abstract protected function getConversionTypes();
   
   
-  public function fetchAll() {
+  public function fetchAll($key_column = NULL) {
     $data = $this->conn
       ->executeQuery($this->toSQL(), $this->getParamValues(), $this->getParamTypes())
       ->fetchAll(\PDO::FETCH_ASSOC);
     
     foreach ($data as &$row) {
       $row = $this->convertDatabaseValuesToPHPValues($row);
+    }
+    
+    if ($key_column !== NULL) {
+      $keys = array_map(function($row) use ($key_column) {
+        return $row[$key_column];
+      }, $data);
+      $data = array_combine($keys, $data);
     }
       
     return $data;
@@ -36,7 +43,7 @@ abstract class FetchQuery extends Query {
   }
   
   
-  public function fetchList($column_name = NULL) {
+  public function fetchList($column_name = NULL, $key_column = NULL) {
     return array_map(function($row) use ($column_name) {
       if ($column_name === NULL) {
         $values = array_values($row);
@@ -44,7 +51,7 @@ abstract class FetchQuery extends Query {
       }
       
       return $row[$column_name];
-    }, $this->fetchAll());
+    }, $this->fetchAll($key_column));
   }
   
   

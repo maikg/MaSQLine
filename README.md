@@ -171,6 +171,11 @@ You can also execute query objects directly instead of converting them to an SQL
 // converted to their PHP counterparts.
 $rows = $query->fetchAll();
 
+// Same as above, but make sure the keys correspond to the values of the 'id' column.
+// You have to make sure that no multiple values occur in the result set, otherwise
+// the behavior is undefined.
+$rows = $query->fetchAll('id');
+
 // Fetch only the first row as an associative array.
 $row = $query->fetchOne();
 
@@ -180,10 +185,13 @@ $titles = $query->fetchList('title');
 // Fetch only the first column of all results.
 $firsts = $query->fetchList();
 
+// Fetch an array that maps ids to the corresponding rows' titles.
+$firsts = $query->fetchList('title', 'id');
+
 // Fetch only a single named column from the first row.
 $title = $query->fetchValue('title');
 
-// Fetch only the the first selected column of the first row.
+// Fetch only the first selected column of the first row.
 $first = $query->fetchValue();
 ?>
 ```
