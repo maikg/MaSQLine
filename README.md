@@ -131,13 +131,16 @@ ORDER BY `posted_at` DESC, `posts`.`id` ASC
 LIMIT 20,10
 ```
 
-The placeholder values are set accordingly.
+The placeholder values are set accordingly, and can be extracted from the query through the `getParamValues()` method.
+Types can be fetched using `getParamTypes()`. Both of these methods return arrays with their values at the same position
+as their corresponding placeholder in the query.
 
 You can also execute query objects directly instead of converting them to an SQL statement.
 
 ```php
 <?PHP
-// Fetch all rows as an array of associative arrays. Database types are automatically converted to their PHP counterparts.
+// Fetch all rows as an array of associative arrays. Database types are automatically
+// converted to their PHP counterparts.
 $rows = $query->fetchAll();
 
 // Fetch only the first row as an associative array.
@@ -147,8 +150,10 @@ $row = $query->fetchOne();
 $titles = $query->fetchList('title');
 
 // Fetch only a single value.
-$title = $query->fetchValue('title'); // $title contains the value of the 'title' column of the first row.
-$first = $query->fetchValue(); // $first contains the value of the first column in the SELECT statement for the first row.
+$title = $query->fetchValue('title');
+// $title contains the value of the 'title' column of the first row.
+$first = $query->fetchValue();
+// $first contains the value of the first column in the SELECT statement for the first row.
 ?>
 ```
 
@@ -212,7 +217,7 @@ otherwise you will get out-of-sync with older data!
 
 ## TODO
 
-* Add more documentation.
+* Add API documentation.
 * Support for subqueries (by nesting query objects).
 * Support for platform-specific flags (f.e. INSERT DELAYED for MySQL?)
 * UNION query object (depends on subquery support).
