@@ -12,7 +12,7 @@ class TestCase extends \PHPUnit_Framework_TestCase {
     $this->conn = \Doctrine\DBAL\DriverManager::getConnection(
       array(
         'driver'    => 'pdo_sqlite',
-        'db_name'   => 'dbalext_tests',
+        'db_name'   => 'masqline_tests',
         'memory'    => true
       ),
       new \Doctrine\DBAL\Configuration()

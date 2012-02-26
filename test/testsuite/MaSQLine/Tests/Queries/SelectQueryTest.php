@@ -467,6 +467,37 @@ LIMIT 3
 SQL;
     
     $this->assertEquals($expected_sql, $sql);
+    
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('posts.id')
+      ->from('posts')
+      ->offset(10)
+      ->toSQL();
+    
+    $expected_sql = <<<SQL
+SELECT `posts`.`id`
+FROM `posts`
+LIMIT 10,%d
+SQL;
+    
+    $this->assertEquals(sprintf($expected_sql, PHP_INT_MAX), $sql);
+    
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('posts.id')
+      ->from('posts')
+      ->limit(10)
+      ->offset(20)
+      ->toSQL();
+    
+    $expected_sql = <<<SQL
+SELECT `posts`.`id`
+FROM `posts`
+LIMIT 20,10
+SQL;
+    
+    $this->assertEquals($expected_sql, $sql);
   }
   
   

@@ -1,7 +1,7 @@
 {
   "name": "maikg/MaSQLine",
   "type": "library",
-  "description": "Utility library built on top of Doctrine DBAL.",
+  "description": "Utility library built on top of Doctrine DBAL. Particulary tries to hit the sweet spot between managing all database communication manually and using a full-blown ORM.",
   "keywords": ["database", "sql", "dbal", "persistence", "queryobject"],
   "authors": [
     {

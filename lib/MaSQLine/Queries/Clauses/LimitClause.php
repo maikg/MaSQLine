@@ -25,8 +25,8 @@ class LimitClause extends Clause {
   
   
   public function toSQL() {
-    $limit = ($this->limit === NULL) ? INT_MAX : $this->limit;
-    $content = ($this->offset === NULL) ? $limit : sprintf("%d,%d", $this->limit, $this->offset);
+    $limit = ($this->limit === NULL) ? PHP_INT_MAX : $this->limit;
+    $content = ($this->offset === NULL) ? $limit : sprintf("%d,%d", $this->offset, $limit);
     return sprintf("LIMIT %s", $content);
   }
 }
