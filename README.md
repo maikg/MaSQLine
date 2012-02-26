@@ -149,11 +149,14 @@ $row = $query->fetchOne();
 // Fetch only a single (named) column of all results.
 $titles = $query->fetchList('title');
 
-// Fetch only a single value.
+// Fetch only the first column of all results.
+$firsts = $query->fetchList();
+
+// Fetch only a single named column from all the row.
 $title = $query->fetchValue('title');
-// $title contains the value of the 'title' column of the first row.
+
+// Fetch only the the first selected column of the first row.
 $first = $query->fetchValue();
-// $first contains the value of the first column in the SELECT statement for the first row.
 ?>
 ```
 

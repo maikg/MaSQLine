@@ -33,8 +33,13 @@ abstract class FetchQuery extends Query {
   }
   
   
-  public function fetchList($column_name) {
+  public function fetchList($column_name = NULL) {
     return array_map(function($row) use ($column_name) {
+      if ($column_name === NULL) {
+        $values = array_values($row);
+        return $values[0];
+      }
+      
       return $row[$column_name];
     }, $this->fetchAll());
   }

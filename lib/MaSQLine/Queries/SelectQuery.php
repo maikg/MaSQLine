@@ -12,11 +12,11 @@ class SelectQuery extends FetchQuery {
   public function __construct(Connection $connection, Schema $schema) {
     parent::__construct($connection, $schema);
     
-    $this->clauses_manager = new ClausesManager($this->getClauses());
+    $this->clauses_manager = new ClausesManager($this->createClauses());
   }
   
   
-  private function getClauses() {
+  private function createClauses() {
     return array(
       'SELECT'      => new Clauses\SelectClause($this->schema),
       'FROM'        => new Clauses\FromClause($this->schema),

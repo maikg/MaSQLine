@@ -630,6 +630,15 @@ SQL;
       ->fetchList('title');
     
     $this->assertEquals(array('Foo', 'FooBar'), $rows);
+    
+    $query = new SelectQuery($this->conn, $this->schema);
+    $rows = $query
+      ->select('posts.title', 'posts.id')
+      ->from('posts')
+      ->orderBy('posts.id')
+      ->fetchList();
+    
+    $this->assertEquals(array('Foo', 'FooBar'), $rows);
   }
   
   
