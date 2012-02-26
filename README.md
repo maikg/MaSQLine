@@ -50,6 +50,7 @@ columns.
 Assume the following schema.
 
 ```php
+<?PHP
 $schema = new \Doctrine\DBAL\Schema\Schema();
 
 $authors = $schema->createTable('authors');
@@ -64,19 +65,22 @@ $posts->addColumn('title', 'string');
 $posts->addColumn('body', 'text');
 $posts->addColumn('posted_at', 'datetime');
 $posts->setPrimaryKey(array('id'));
+?>
 ```
 
 We also need an instance of `\Doctrine\DBAL\Connection`:
 
 ```php
+<?PHP
 $conn = \Doctrine\DBAL\DriverManager::getConnection(
     array(
         'driver'    => 'pdo_sqlite',
-        'db_name'   => 'masqline_tests',
+        'db_name'   => 'masqline_examples',
         'memory'    => true
     ),
     new \Doctrine\DBAL\Configuration()
 );
+?>
 ```
 
 #### SelectQuery
@@ -84,6 +88,7 @@ $conn = \Doctrine\DBAL\DriverManager::getConnection(
 Consider the following `SelectQuery` example:
 
 ```php
+<?PHP
 use MaSQLine\Queries\SelectQuery;
 
 $query = new SelectQuery($conn, $schema);
@@ -107,6 +112,7 @@ $sql = $query
     ->limit(10)
     ->offset(20)
     ->toSQL();
+?>
 ```
 
 `$sql` now contains the following SQL statement.
@@ -125,6 +131,7 @@ The placeholder values are set accordingly.
 You can also execute query objects directly instead of converting them to an SQL statement.
 
 ```php
+<?PHP
 // Fetch all rows as an array of associative arrays. Database types are automatically converted to their PHP counterparts.
 $rows = $query->fetchAll();
 
@@ -137,6 +144,7 @@ $titles = $query->fetchList('title');
 // Fetch only a single value.
 $title = $query->fetchValue('title'); // $title contains the value of the 'title' column of the first row.
 $first = $query->fetchValue(); // $first contains the value of the first column in the SELECT statement for the first row.
+?>
 ```
 
 #### Manipulation queries
@@ -148,8 +156,10 @@ self-explanatory.
 You can execute these queries as follows.
 
 ```php
+<?PHP
 $query = ...; // Manipulation query created here
 $affected_row_count = $query->execute();
+?>
 ```
 
 ## Types
