@@ -1,10 +1,22 @@
 <?PHP
 namespace MaSQLine\Queries;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
 
-class SelectQuery extends ClausesQuery {
-  protected function getClauses() {
+class SelectQuery extends FetchQuery {
+  private $clauses_manager;
+  
+  
+  public function __construct(Connection $connection, Schema $schema) {
+    parent::__construct($connection, $schema);
+    
+    $this->clauses_manager = new ClausesManager($this->getClauses());
+  }
+  
+  
+  private function getClauses() {
     return array(
       'SELECT'      => new Clauses\SelectClause($this->schema),
       'FROM'        => new Clauses\FromClause($this->schema),
@@ -14,6 +26,26 @@ class SelectQuery extends ClausesQuery {
       'ORDER BY'    => new Clauses\OrderByClause(),
       'LIMIT'       => new Clauses\LimitClause()
     );
+  }
+  
+  
+  private function getClause($clause_name) {
+    return $this->clauses_manager->getClause($clause_name);
+  }
+  
+  
+  public function toSQL() {
+    return $this->clauses_manager->toSQL();
+  }
+  
+  
+  public function getParamValues() {
+    return $this->clauses_manager->getParamValues();
+  }
+  
+  
+  public function getParamTypes() {
+    return $this->clauses_manager->getParamTypes();
   }
   
   

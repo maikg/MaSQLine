@@ -61,6 +61,11 @@ abstract class Query {
   }
   
   
+  public function __toString() {
+    return $this->toSQL();
+  }
+  
+  
   abstract public function toSQL();
   
   

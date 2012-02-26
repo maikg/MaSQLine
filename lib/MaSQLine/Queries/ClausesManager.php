@@ -1,34 +1,23 @@
 <?PHP
 namespace MaSQLine\Queries;
 
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Schema\Schema;
-
-abstract class ClausesQuery extends FetchQuery {
+/**
+ * Manages a set of clauses. This class is useful if a query can be built exclusively with a
+ * set of clauses that always maintain the same order relative to each other.
+ *
+ * @author Maik Gosenshuis
+ */
+class ClausesManager {
   private $clauses;
   
   
-  public function __construct(Connection $conn, Schema $schema) {
-    parent::__construct($conn, $schema);
-    
-    $this->clauses = $this->getClauses();
+  public function __construct(array $clauses) {
+    $this->clauses = $clauses;
   }
   
   
-  abstract protected function getClauses();
-  
-  
-  protected function getClause($name) {
+  public function getClause($name) {
     return $this->clauses[$name];
-  }
-  
-  
-  protected function setClause($name, Clauses\Clause $clause) {
-    if (!array_key_exists($name, $this->clauses)) {
-      throw new \InvalidArgumentException(sprintf("Unknown clause specified: '%s'", $name));
-    }
-    
-    $this->clauses[$name] = $clause;
   }
   
   

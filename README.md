@@ -183,7 +183,7 @@ $query
     ->selectAggr('MIN', 'posts.posted_at', 'first_posted_at')
     ->selectAggr('MAX', 'posts.posted_at', 'last_posted_at')
     
-    // First column specifies the column to count. If set to NULL, uses COUNT(*).
+    // First argument specifies the column to count. If set to NULL, uses COUNT(*).
     ->selectCount(NULL, 'num_posts')
     
     ->from('posts')
