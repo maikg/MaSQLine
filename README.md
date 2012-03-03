@@ -39,7 +39,7 @@ to the root of this project after cloning. Afterwards, you simply call `php comp
 root to install the necessary dependencies.
 
 MaSQLine is not up at [Packagist](http://packagist.org/) at the moment, but you can easily specify MaSQLine as a
-dependency in your own `composer.json` by adding this GitHub project as a repository.
+dependency in your own `composer.json` by adding the project's GitHub repository to your own `composer.json`.
 
 ```json
 {

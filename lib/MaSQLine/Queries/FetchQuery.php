@@ -6,22 +6,26 @@ abstract class FetchQuery extends Query {
   
   
   public function fetchAll($key_column = NULL) {
-    $data = $this->conn
+    $rows = $this->conn
       ->executeQuery($this->toSQL(), $this->getParamValues(), $this->getParamTypes())
       ->fetchAll(\PDO::FETCH_ASSOC);
     
-    foreach ($data as &$row) {
+    if (count($rows) == 0) {
+      return $rows;
+    }
+    
+    foreach ($rows as &$row) {
       $row = $this->convertDatabaseValuesToPHPValues($row);
     }
     
     if ($key_column !== NULL) {
       $keys = array_map(function($row) use ($key_column) {
         return $row[$key_column];
-      }, $data);
-      $data = array_combine($keys, $data);
+      }, $rows);
+      $rows = array_combine($keys, $rows);
     }
       
-    return $data;
+    return $rows;
   }
   
   
@@ -57,6 +61,11 @@ abstract class FetchQuery extends Query {
   
   public function fetchValue($column_name = NULL) {
     $row = $this->fetchOne();
+    
+    if ($row === NULL) {
+      return NULL;
+    }
+    
     return ($column_name === NULL) ? current($row) : $row[$column_name];
   }
   

@@ -605,6 +605,20 @@ SQL;
   }
   
   
+  public function testFetchAllNoResult() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    $query
+      ->select('posts.*')
+      ->from('posts')
+      ->where(function($where) {
+        $where->equals('posts.title', 'asdfasdfasdf');
+      });
+    
+    $rows = $query->fetchAll('id');
+    $this->assertCount(0, $rows);
+  }
+  
+  
   public function testFetchOne() {
     $this->insertPostFixtures();
     
@@ -687,5 +701,22 @@ SQL;
       ->fetchValue('num');
     
     $this->assertEquals(2, $num);
+  }
+  
+  
+  public function testFetchValueNoResult() {
+    $this->insertPostFixtures();
+    
+    $query = new SelectQuery($this->conn, $this->schema);
+    $title = $query
+      ->select('posts.title')
+      ->from('posts')
+      ->orderBy('posts.id')
+      ->where(function($where) {
+        $where->equals('posts.title', 'asdfasdfasdf');
+      })
+      ->fetchValue();
+    
+    $this->assertNull($title);
   }
 }
