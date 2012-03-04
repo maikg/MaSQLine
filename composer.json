@@ -1,5 +1,5 @@
 {
-  "name": "maikg/MaSQLine",
+  "name": "maikg/masqline",
   "type": "library",
   "description": "Utility library built on top of Doctrine DBAL. Particulary tries to hit the sweet spot between managing all database communication manually and using a full-blown ORM.",
   "keywords": ["database", "sql", "dbal", "persistence", "queryobject"],
@@ -10,6 +10,7 @@
     }
   ],
   "require": {
+    "php": ">=5.3.0",
     "doctrine/dbal": "2.2.*"
   },
   "autoload": {
