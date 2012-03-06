@@ -6,6 +6,11 @@ use MaSQLine\Queries\SelectQuery;
 use Doctrine\DBAL\Types\Type;
 
 class SelectQueryTest extends \MaSQLine\Tests\TestCase {
+  public function setUp() {
+    $this->setUpWithSchemaFixture('schema');
+  }
+  
+  
   public function testSimple() {
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query

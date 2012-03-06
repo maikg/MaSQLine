@@ -8,7 +8,7 @@ class TestCase extends \PHPUnit_Framework_TestCase {
   protected $schema;
   
   
-  public function setUp() {
+  protected function setUpWithSchemaFixture($schema_name) {
     $this->conn = \Doctrine\DBAL\DriverManager::getConnection(
       array(
         'driver'    => 'pdo_sqlite',
@@ -17,7 +17,7 @@ class TestCase extends \PHPUnit_Framework_TestCase {
       ),
       new \Doctrine\DBAL\Configuration()
     );
-    $this->schema = require \MaSQLine\TEST_ROOT_PATH . '/fixtures/schema.php';
+    $this->schema = require \MaSQLine\TEST_ROOT_PATH . '/fixtures/' . $schema_name . '.php';
     
     $queries = $this->schema->toSql($this->conn->getDatabasePlatform());
     foreach ($queries as $query) {

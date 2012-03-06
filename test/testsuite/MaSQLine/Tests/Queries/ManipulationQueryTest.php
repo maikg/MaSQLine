@@ -8,6 +8,11 @@ use MaSQLine\Queries\DeleteQuery;
 use Doctrine\DBAL\Types\Type;
 
 class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
+  public function setUp() {
+    $this->setUpWithSchemaFixture('schema');
+  }
+  
+  
   public function testInsert() {
     $dt = new \DateTime();
     
