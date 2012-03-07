@@ -19,6 +19,23 @@ use MaSQLine\Queries\DeleteQuery;
  * @see \Doctrine\DBAL\Schema\Schema
  */
 class DB {
+  private static $instances = array();
+  
+  
+  public static function register($alias, DB $db) {
+    self::$instances[$alias] = $db;
+  }
+  
+  
+  public static function get($alias) {
+    if (!array_key_exists($alias, self::$instances)) {
+      throw new \InvalidArgumentException(sprintf("No connection registered with alias '%s'.", $alias));
+    }
+    
+    return self::$instances[$alias];
+  }
+  
+  
   private $conn;
   private $schema;
   
