@@ -81,6 +81,17 @@ class DB {
   }
   
   
+  public function simpleSelect($table_name, array $conditions = array()) {
+    $query = $this->createSelectQuery()
+      ->select(sprintf('%s.*', $table_name))
+      ->from($table_name);
+    
+    $this->applyEqualsConditionsToQuery($query, $table_name, $conditions);
+    
+    return $query;
+  }
+  
+  
   /**
    * Shortcut method that creates an instance of {@link \MaSQLine\Queries\InsertQuery}, sets
    * the necessary properties and executes the query.
@@ -99,19 +110,19 @@ class DB {
   public function update($table_name, array $values, array $conditions = array()) {
     $query = $this->createUpdateQuery($table_name)
       ->setValues($values);
-    $this->applyConditionsToQuery($query, $table_name, $conditions);
+    $this->applyEqualsConditionsToQuery($query, $table_name, $conditions);
     return $query->execute();
   }
   
   
   public function delete($table_name, array $conditions = array()) {
     $query = $this->createDeleteQuery($table_name);    
-    $this->applyConditionsToQuery($query, $table_name, $conditions);
+    $this->applyEqualsConditionsToQuery($query, $table_name, $conditions);
     return $query->execute();
   }
   
   
-  private function applyConditionsToQuery($query, $table_name, array $conditions) {
+  private function applyEqualsConditionsToQuery($query, $table_name, array $conditions) {
     if (count($conditions) == 0) {
       return;
     }
