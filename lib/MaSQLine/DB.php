@@ -20,15 +20,24 @@ use MaSQLine\Queries\DeleteQuery;
  */
 class DB {
   private static $instances = array();
+  private static $default_alias = NULL;
   
   
-  public static function register($alias, DB $db) {
+  public static function register($alias, DB $db, $default = false) {
     self::$instances[$alias] = $db;
+    
+    if ($default) {
+      self::$default_alias = $alias;
+    }
   }
   
   
   public static function deregister($alias) {
     unset(self::$instances[$alias]);
+    
+    if ($alias == self::$default_alias) {
+      self::$default_alias = NULL;
+    }
   }
   
   
@@ -38,6 +47,11 @@ class DB {
     }
     
     return self::$instances[$alias];
+  }
+  
+  
+  public static function getDefault() {
+    return self::$instances[self::$default_alias];
   }
   
   
