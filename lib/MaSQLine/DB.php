@@ -27,6 +27,11 @@ class DB {
   }
   
   
+  public static function deregister($alias) {
+    unset(self::$instances[$alias]);
+  }
+  
+  
   public static function get($alias) {
     if (!array_key_exists($alias, self::$instances)) {
       throw new \InvalidArgumentException(sprintf("No connection registered with alias '%s'.", $alias));
