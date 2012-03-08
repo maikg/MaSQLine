@@ -23,7 +23,7 @@ class DB {
   private static $default_alias = NULL;
   
   
-  public static function register($alias, DB $db, $default = false) {
+  public static function register($alias, $db, $default = false) {
     self::$instances[$alias] = $db;
     
     if ($default) {
@@ -46,12 +46,16 @@ class DB {
       throw new \InvalidArgumentException(sprintf("No connection registered with alias '%s'.", $alias));
     }
     
+    if (is_callable(self::$instances[$alias])) {
+      self::$instances[$alias] = call_user_func(self::$instances[$alias]);
+    }
+    
     return self::$instances[$alias];
   }
   
   
   public static function getDefault() {
-    return self::$instances[self::$default_alias];
+    return self::get(self::$default_alias);
   }
   
   
