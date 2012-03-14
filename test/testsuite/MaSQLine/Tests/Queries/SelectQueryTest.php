@@ -176,7 +176,7 @@ SQL;
       ->select('posts.title')
       ->from('posts')
       ->where(function($where) use ($condition_method) {
-        $where->$condition_method('posts.id', 5);
+        return $where->$condition_method('posts.id', 5);
       })
       ->toSQL();
       
@@ -198,12 +198,11 @@ SQL;
   
   public static function simpleConditionProvider() {
     return array(
-      array('equals', '='),
-      array('notEquals', '<>'),
+      array('equalTo', '='),
       array('greaterThan', '>'),
-      array('smallerThan', '<'),
-      array('greaterThanOrEquals', '>='),
-      array('smallerThanOrEquals', '<='),
+      array('lessThan', '<'),
+      array('greaterThanOrEqualTo', '>='),
+      array('lessThanOrEqualTo', '<='),
       array('like', 'LIKE')
     );
   }
@@ -215,22 +214,22 @@ SQL;
       ->select('posts.title')
       ->from('posts')
       ->where(function($where) {
-        $where->in('posts.id', array(2,3,4));
+        return $where->in('posts.id', array(2,3,4));
       })
       ->toSQL();
       
     $expected_sql = <<<SQL
 SELECT `posts`.`title`
 FROM `posts`
-WHERE `posts`.`id` IN (?)
+WHERE `posts`.`id` IN (?,?,?)
 SQL;
     
     $this->assertEquals($expected_sql, $sql);
     
-    $expected_values = array(array(2,3,4));
+    $expected_values = array(2,3,4);
     $this->assertEquals($expected_values, $query->getParamValues());
     
-    $expected_types = array(\Doctrine\DBAL\Connection::PARAM_INT_ARRAY);
+    $expected_types = array(Type::getType('integer'), Type::getType('integer'), Type::getType('integer'));
     $this->assertEquals($expected_types, $query->getParamTypes());
   }
   
@@ -241,22 +240,22 @@ SQL;
       ->select('posts.id')
       ->from('posts')
       ->where(function($where) {
-        $where->in('posts.title', array('Foo', 'Bar'));
+        return $where->in('posts.title', array('Foo', 'Bar'));
       })
       ->toSQL();
       
     $expected_sql = <<<SQL
 SELECT `posts`.`id`
 FROM `posts`
-WHERE `posts`.`title` IN (?)
+WHERE `posts`.`title` IN (?,?)
 SQL;
     
     $this->assertEquals($expected_sql, $sql);
     
-    $expected_values = array(array('Foo', 'Bar'));
+    $expected_values = array('Foo', 'Bar');
     $this->assertEquals($expected_values, $query->getParamValues());
     
-    $expected_types = array(\Doctrine\DBAL\Connection::PARAM_STR_ARRAY);
+    $expected_types = array(Type::getType('string'), Type::getType('string'));
     $this->assertEquals($expected_types, $query->getParamTypes());
   }
   
@@ -267,16 +266,17 @@ SQL;
       ->select('posts.id')
       ->from('posts')
       ->where(function($where) {
-        $where
-          ->like('posts.title', 'Foo%')
-          ->notEquals('posts.id', 2);
+        return $where->all(
+          $where->like('posts.title', 'Foo%'),
+          $where->not($where->equalTo('posts.id', 2))
+        );
       })
       ->toSQL();
       
     $expected_sql = <<<SQL
 SELECT `posts`.`id`
 FROM `posts`
-WHERE (`posts`.`title` LIKE ? AND `posts`.`id` <> ?)
+WHERE (`posts`.`title` LIKE ? AND NOT (`posts`.`id` = ?))
 SQL;
     
     $this->assertEquals($expected_sql, $sql);
@@ -295,12 +295,11 @@ SQL;
       ->select('posts.id')
       ->from('posts')
       ->where(function($where) {
-        $where->orGroup(function($where) {
-          $where
-            ->like('posts.title', 'Foo%')
-            ->equals('posts.title', 'Bar')
-            ->equals('posts.id', 2);
-        });
+        return $where->any(
+          $where->like('posts.title', 'Foo%'),
+          $where->eq('posts.title', 'Bar'),
+          $where->eq('posts.id', 2)
+        );
       })
       ->toSQL();
       
@@ -326,18 +325,17 @@ SQL;
       ->select('posts.id')
       ->from('posts')
       ->where(function($where) {
-        $where
-          ->like('posts.title', 'Foo%')
-          ->orGroup(function($where) {
-            $where
-              ->like('posts.title', '%Bar')
-              ->andGroup(function($where) {
-                $where
-                  ->equals('posts.id', 2)
-                  ->equals('posts.author_id', 1);
-              });
-          })
-          ->like('posts.body', '%foobar%');
+        return $where->all(
+          $where->like('posts.title', 'Foo%'),
+          $where->any(
+            $where->like('posts.title', '%Bar'),
+            $where->all(
+              $where->eq('posts.id', 2),
+              $where->eq('posts.author_id', 1)
+            )
+          ),
+          $where->like('posts.body', '%foobar%')
+        );
       })
       ->toSQL();
       
@@ -429,7 +427,7 @@ SQL;
       ->select('comments.id', 'posts.title')
       ->from('comments')
       ->where(function($where) {
-        $where->like('comments.body', 'Foo%');
+        return $where->like('comments.body', 'Foo%');
       })
       ->innerJoin('posts', function($conditions) {
         $conditions
@@ -616,7 +614,7 @@ SQL;
       ->select('posts.*')
       ->from('posts')
       ->where(function($where) {
-        $where->equals('posts.title', 'asdfasdfasdf');
+        return $where->equalTo('posts.title', 'asdfasdfasdf');
       });
     
     $rows = $query->fetchAll('id');
@@ -718,7 +716,7 @@ SQL;
       ->from('posts')
       ->orderBy('posts.id')
       ->where(function($where) {
-        $where->equals('posts.title', 'asdfasdfasdf');
+        return $where->equalTo('posts.title', 'asdfasdfasdf');
       })
       ->fetchValue();
     

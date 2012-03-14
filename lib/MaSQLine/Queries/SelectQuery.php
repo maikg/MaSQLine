@@ -20,7 +20,7 @@ class SelectQuery extends FetchQuery {
     return array(
       'SELECT'      => new Clauses\SelectClause($this->schema),
       'FROM'        => new Clauses\FromClause($this->schema),
-      'WHERE'       => new Clauses\ConditionsClause($this->schema, 'AND', 'WHERE'),
+      'WHERE'       => new Clauses\NewConditionsClause('WHERE'),
       'GROUP BY'    => new Clauses\GroupByClause(),
       'HAVING'      => new Clauses\ConditionsClause($this->schema, 'AND', 'HAVING'),
       'ORDER BY'    => new Clauses\OrderByClause(),
@@ -100,8 +100,10 @@ class SelectQuery extends FetchQuery {
   }
   
   
-  public function where(\Closure $setup_where) {
-    $setup_where($this->getClause('WHERE'));
+  public function where(\Closure $setup_expression) {
+    $builder = new ConditionsBuilder($this->schema);
+    $expr = $setup_expression($builder);
+    $this->getClause('WHERE')->setExpression($expr);
     return $this;
   }
   
