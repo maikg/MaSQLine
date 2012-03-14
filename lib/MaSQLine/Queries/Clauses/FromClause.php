@@ -3,6 +3,8 @@ namespace MaSQLine\Queries\Clauses;
 
 use Doctrine\DBAL\Schema\Schema;
 use MaSQLine\Queries\Query;
+use MaSQLine\Queries\ConditionsBuilder;
+use MaSQLine\Queries\ColumnPath;
 
 class FromClause extends Clause {
   private $schema;
@@ -33,17 +35,19 @@ class FromClause extends Clause {
   
   
   private function addJoin($join_prefix, $origin, $target) {
-    $conditions_clause = new ConditionsClause($this->schema, 'AND');
+    $conditions_clause = new ConditionsClause('ON');
+    $builder = new ConditionsBuilder($this->schema);
     
     if ($target instanceof \Closure) {
       $target_table_name = $origin;
-      $setup_conditions = $target;
-      $setup_conditions($conditions_clause);
+      $expr = $target($builder);
     }
     else {
-      list($target_table_name) = Query::convertFieldFormat($target);
-      $conditions_clause->equalColumns($origin, $target);
+      $target_table_name = ColumnPath::parse($this->schema, $target)->getTable()->getName();
+      $expr = $builder->eqCol($origin, $target);
     }
+    
+    $conditions_clause->setExpression($expr);
     
     $this->joins[] = array($join_prefix, $target_table_name, $conditions_clause);
   }
@@ -81,7 +85,7 @@ class FromClause extends Clause {
     
     $lines = array_map(function($join) {
       list($join_type, $target_table_name, $conditions) = $join;
-      return sprintf("%s `%s` ON %s", $join_type, $target_table_name, $conditions->toSQL());
+      return sprintf("%s `%s` %s", $join_type, $target_table_name, $conditions->toSQL());
     }, $this->joins);
     
     array_unshift($lines, sprintf("FROM `%s`", $this->table_name));

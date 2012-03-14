@@ -2,6 +2,7 @@
 namespace MaSQLine\Tests\Queries;
 
 use MaSQLine\Queries\Query;
+use MaSQLine\Queries\Expression;
 use MaSQLine\Queries\SelectQuery;
 use Doctrine\DBAL\Types\Type;
 
@@ -390,10 +391,11 @@ SQL;
     $sql = $query
       ->select('comments.id', 'posts.title')
       ->from('comments')
-      ->$join_method('posts', function($conditions) {
-        $conditions
-          ->equalColumns('comments.post_id', 'posts.id')
-          ->equals('posts.author_id', 2);
+      ->$join_method('posts', function($cond) {
+        return $cond->all(
+          $cond->eqCol('comments.post_id', 'posts.id'),
+          $cond->eq('posts.author_id', 2)
+        );
       })
       ->toSQL();
     
@@ -429,10 +431,11 @@ SQL;
       ->where(function($where) {
         return $where->like('comments.body', 'Foo%');
       })
-      ->innerJoin('posts', function($conditions) {
-        $conditions
-          ->equalColumns('comments.post_id', 'posts.id')
-          ->equals('posts.author_id', 2);
+      ->innerJoin('posts', function($cond) {
+        return $cond->all(
+          $cond->eqCol('comments.post_id', 'posts.id'),
+          $cond->eq('posts.author_id', 2)
+        );
       })
       ->innerJoin('posts.author_id', 'authors.id')
       ->toSQL();
@@ -530,7 +533,7 @@ SQL;
       ->from('posts')
       ->groupBy('posts.author_id')
       ->having(function($having) {
-        $having->greaterThan(Query::raw('COUNT(*)'), 3, 'integer');
+        return $having->greaterThan(Expression::raw('COUNT(*)'), 3, 'integer');
       })
       ->toSQL();
     

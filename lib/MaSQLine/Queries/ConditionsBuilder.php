@@ -3,6 +3,7 @@ namespace MaSQLine\Queries;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Types\Type;
 
 class ConditionsBuilder {
   private $schema;
@@ -13,17 +14,19 @@ class ConditionsBuilder {
   }
   
   
-  private function parseColumnPath($column_path) {
-    return ColumnPath::parse($this->schema, $column_path);
+  private function parseColumnExpression($column_expr, $type = NULL) {
+    return ColumnExpression::parse($this->schema, $column_expr, $type);
   }
   
   
-  private function simpleCondition($column_path, $format, $value = NULL, $type = NULL) {
-    if (!($column_path instanceof ColumnPath)) {
-      $column_path = $this->parseColumnPath($column_path);
+  private function simpleCondition($column_expr, $format, $value = NULL, $type = NULL) {
+    $final_format = NULL;
+    
+    if (!($column_expr instanceof ColumnExpression)) {
+      $column_expr = $this->parseColumnExpression($column_expr, $type);
     }
     
-    $final_format = sprintf($format, $column_path->toQuotedString());
+    $final_format = sprintf($format, $column_expr->toString());
     
     if ($value === NULL) {
       return new Expression($final_format);
@@ -32,7 +35,7 @@ class ConditionsBuilder {
     return new Expression(
       $final_format,
       array($value),
-      array(($type === NULL) ? $column_path->getType() : $type)
+      array($column_expr->getType())
     );
   }
   
@@ -46,77 +49,119 @@ class ConditionsBuilder {
   }
   
   
-  public function equalTo($column_path, $value) {
-    return $this->simpleCondition($column_path, '%s = ?', $value);
+  public function equalTo($column_expr, $value, $type = NULL) {
+    return $this->simpleCondition($column_expr, '%s = ?', $value, $type);
   }
-  public function eq($column_path, $value) {
-    return $this->equalTo($column_path, $value);
-  }
-  
-  
-  public function greaterThan($column_path, $value) {
-    return $this->simpleCondition($column_path, '%s > ?', $value);
-  }
-  public function gt($column_path, $value) {
-    return $this->greaterThan($column_path, $value);
+  public function eq($column_expr, $value, $type = NULL) {
+    return $this->equalTo($column_expr, $value, $type);
   }
   
   
-  public function greaterThanOrEqualTo($column_path, $value) {
-    return $this->simpleCondition($column_path, '%s >= ?', $value);
+  public function greaterThan($column_expr, $value, $type = NULL) {
+    return $this->simpleCondition($column_expr, '%s > ?', $value, $type);
   }
-  public function gte($column_path, $value) {
-    return $this->greaterThanOrEqualTo($column_path, $value);
-  }
-  
-  
-  public function lessThan($column_path, $value) {
-    return $this->simpleCondition($column_path, '%s < ?', $value);
-  }
-  public function lt($column_path, $value) {
-    return $this->lessThan($column_path, $value);
+  public function gt($column_expr, $value, $type = NULL) {
+    return $this->greaterThan($column_expr, $value, $type);
   }
   
   
-  public function lessThanOrEqualTo($column_path, $value) {
-    return $this->simpleCondition($column_path, '%s <= ?', $value);
+  public function greaterThanOrEqualTo($column_expr, $value, $type = NULL) {
+    return $this->simpleCondition($column_expr, '%s >= ?', $value, $type);
   }
-  public function lte($column_path, $value) {
-    return $this->lessThanOrEqualTo($column_path, $value);
+  public function gte($column_expr, $value, $type = NULL) {
+    return $this->greaterThanOrEqualTo($column_expr, $value, $type);
   }
   
   
-  public function in($column_path, array $values) {
-    $column_path = $this->parseColumnPath($column_path);
+  public function lessThan($column_expr, $value, $type = NULL) {
+    return $this->simpleCondition($column_expr, '%s < ?', $value, $type);
+  }
+  public function lt($column_expr, $value, $type = NULL) {
+    return $this->lessThan($column_expr, $value, $type);
+  }
+  
+  
+  public function lessThanOrEqualTo($column_expr, $value, $type = NULL) {
+    return $this->simpleCondition($column_expr, '%s <= ?', $value, $type);
+  }
+  public function lte($column_expr, $value, $type = NULL) {
+    return $this->lessThanOrEqualTo($column_expr, $value, $type);
+  }
+  
+  
+  public function in($column_expr, array $values, $type = NULL) {
+    $column_expr = $this->parseColumnExpression($column_expr);
     
     $placeholders = array_fill(0, count($values), '?');
-    $format = sprintf('%s IN (%s)', $column_path->toQuotedString(), implode(',', $placeholders));
-    $types = array_fill(0, count($values), $column_path->getType());
+    $format = sprintf('%s IN (%s)', $column_expr->toString(), implode(',', $placeholders));
+    
+    if ($type === NULL) {
+      $type = $column_expr->getType();
+    }
+    $types = array_fill(0, count($values), $type);
     
     return new Expression($format, $values, $types);
   }
   
   
-  public function like($column_path, $value) {
-    return $this->simpleCondition($column_path, '%s LIKE ?', $value);
+  public function like($column_expr, $value, $type = NULL) {
+    return $this->simpleCondition($column_expr, '%s LIKE ?', $value, $type);
   }
   
   
-  public function isNull($column_path) {
-    return $this->simpleCondition($column_path, '%s IS NULL');
+  public function isNull($column_expr) {
+    return $this->simpleCondition($column_expr, '%s IS NULL');
   }
-  public function null($column_path) {
-    return $this->isNull($column_path);
+  public function null($column_expr) {
+    return $this->isNull($column_expr);
   }
   
   
-  public function equalToColumn($column_path, $other_column_path) {
-    $column_path = $this->parseColumnPath($column_path);
-    $other_column_path = $this->parseColumnPath($other_column_path);
-    $format = sprintf('%s = %s', $column_path->toQuotedString(), $other_column_path->toQuotedString());
+  private function simpleColumnPairCondition($column_expr, $other_column_expr, $format) {
+    $column_expr = $this->parseColumnExpression($column_expr);
+    $other_column_expr = $this->parseColumnExpression($other_column_expr);
+    $format = sprintf($format, $column_expr->toString(), $other_column_expr->toString());
+    return new Expression($format);
   }
-  public function eqCol($column_path, $other_column_path) {
-    return $this->equalToColumn($column_path, $other_column_path);
+  
+  
+  public function equalToColumn($column_expr, $other_column_expr) {
+    return $this->simpleColumnPairCondition($column_expr, $other_column_expr, '%s = %s');
+  }
+  public function eqCol($column_expr, $other_column_expr) {
+    return $this->equalToColumn($column_expr, $other_column_expr);
+  }
+  
+  
+  public function greaterThanColumn($column_expr, $other_column_expr) {
+    return $this->simpleColumnPairCondition($column_expr, $other_column_expr, '%s > %s');
+  }
+  public function gtCol($column_expr, $other_column_expr) {
+    return $this->greaterThanColumn($column_expr, $other_column_expr);
+  }
+  
+  
+  public function greaterThanOrEqualToColumn($column_expr, $other_column_expr) {
+    return $this->simpleColumnPairCondition($column_expr, $other_column_expr, '%s >= %s');
+  }
+  public function gteCol($column_expr, $other_column_expr) {
+    return $this->greaterThanOrEqualToColumn($column_expr, $other_column_expr);
+  }
+  
+  
+  public function lessThanColumn($column_expr, $other_column_expr) {
+    return $this->simpleColumnPairCondition($column_expr, $other_column_expr, '%s < %s');
+  }
+  public function ltCol($column_expr, $other_column_expr) {
+    return $this->lessThanColumn($column_expr, $other_column_expr);
+  }
+  
+  
+  public function lessThanOrEqualToColumn($column_expr, $other_column_expr) {
+    return $this->simpleColumnPairCondition($column_expr, $other_column_expr, '%s <= %s');
+  }
+  public function lteCol($column_expr, $other_column_expr) {
+    return $this->lessThanOrEqualToColumn($column_expr, $other_column_expr);
   }
   
   

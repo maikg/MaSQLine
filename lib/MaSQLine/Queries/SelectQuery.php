@@ -20,9 +20,9 @@ class SelectQuery extends FetchQuery {
     return array(
       'SELECT'      => new Clauses\SelectClause($this->schema),
       'FROM'        => new Clauses\FromClause($this->schema),
-      'WHERE'       => new Clauses\NewConditionsClause('WHERE'),
+      'WHERE'       => new Clauses\ConditionsClause('WHERE'),
       'GROUP BY'    => new Clauses\GroupByClause(),
-      'HAVING'      => new Clauses\ConditionsClause($this->schema, 'AND', 'HAVING'),
+      'HAVING'      => new Clauses\ConditionsClause('HAVING'),
       'ORDER BY'    => new Clauses\OrderByClause(),
       'LIMIT'       => new Clauses\LimitClause()
     );
@@ -152,8 +152,10 @@ class SelectQuery extends FetchQuery {
   }
   
   
-  public function having(\Closure $setup_having) {
-    $setup_having($this->getClause('HAVING'));
+  public function having(\Closure $setup_expression) {
+    $builder = new ConditionsBuilder($this->schema);
+    $expr = $setup_expression($builder);
+    $this->getClause('HAVING')->setExpression($expr);
     return $this;
   }
   
