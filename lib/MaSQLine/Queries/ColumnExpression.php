@@ -6,18 +6,10 @@ use Doctrine\DBAL\Types\Type;
 
 abstract class ColumnExpression {
   public static function parse(Schema $schema, $expr, $type = NULL) {
-    if ($type !== NULL) {
-      $type = self::convertType($type);
-    }
+    $raw = RawColumnExpression::parse($schema, $expr, $type);
     
-    $raw = Expression::unpackRaw($expr);
-    
-    if ($raw !== false) {
-      if ($type === NULL) {
-        throw new \RuntimeException("Expected type to be set explicitly for raw expression: %s", $raw);
-      }
-      
-      return new RawColumnExpression($raw, $type);
+    if ($raw !== NULL) {
+      return $raw;
     }
     
     return ColumnPath::parse($schema, $expr, $type);

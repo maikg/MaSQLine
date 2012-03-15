@@ -14,6 +14,11 @@ class ConditionsBuilder {
   }
   
   
+  public function raw($expr) {
+    return Expression::raw($expr);
+  }
+  
+  
   private function parseColumnExpression($column_expr, $type = NULL) {
     return ColumnExpression::parse($this->schema, $column_expr, $type);
   }

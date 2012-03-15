@@ -5,6 +5,10 @@ use Doctrine\DBAL\Schema\Schema;
 
 class ColumnPath extends ColumnExpression {
   public static function parse(Schema $schema, $expr, $type = NULL) {
+    if ($type !== NULL) {
+      $type = ColumnExpression::convertType($type);
+    }
+    
     list($table_name, $column_name) = explode('.', $expr);
     return new ColumnPath($schema, $table_name, $column_name, $type);
   }
