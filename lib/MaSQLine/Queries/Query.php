@@ -4,7 +4,7 @@ namespace MaSQLine\Queries;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 
-abstract class Query {  
+abstract class Query extends Expression {  
   protected $conn;
   protected $schema;
   
@@ -16,15 +16,11 @@ abstract class Query {
   
   
   public function __toString() {
-    return $this->toSQL();
+    return $this->getFormat();
   }
   
   
-  abstract public function toSQL();
-  
-  
-  abstract public function getParamValues();
-  
-  
-  abstract public function getParamTypes();
+  public function toSQL() {
+    return $this->getFormat();
+  }
 }

@@ -2,10 +2,11 @@
 namespace MaSQLine\Queries\Clauses;
 
 use Doctrine\DBAL\Schema\Schema;
+use MaSQLine\Queries\Expression;
 use MaSQLine\Queries\Query;
 use MaSQLine\Queries\ColumnPath;
 
-class OrderByClause extends Clause {
+class OrderByClause extends Expression {
   const SORT_ASC = '+';
   const SORT_DESC = '-';
   
@@ -47,12 +48,11 @@ class OrderByClause extends Clause {
   }
   
   
-  public function isEmpty() {
-    return (count($this->expressions) == 0);
-  }
-  
-  
-  public function toSQL() {
+  public function getFormat() {
+    if (count($this->expressions) == 0) {
+      return '';
+    }
+    
     return sprintf("ORDER BY %s", implode(', ', $this->expressions));
   }
 }

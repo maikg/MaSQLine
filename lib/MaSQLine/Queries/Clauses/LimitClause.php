@@ -2,11 +2,15 @@
 namespace MaSQLine\Queries\Clauses;
 
 use Doctrine\DBAL\Schema\Schema;
+use MaSQLine\Queries\Expression;
 use MaSQLine\Queries\Query;
 
-class LimitClause extends Clause {
+class LimitClause extends Expression {
   private $limit;
   private $offset;
+  
+  
+  public function __construct() {}
   
   
   public function setLimit($limit) {
@@ -19,12 +23,11 @@ class LimitClause extends Clause {
   }
   
   
-  public function isEmpty() {
-    return ($this->limit === NULL && $this->offset === NULL);
-  }
-  
-  
-  public function toSQL() {
+  public function getFormat() {
+    if ($this->limit === NULL && $this->offset === NULL) {
+      return '';
+    }
+    
     $limit = ($this->limit === NULL) ? PHP_INT_MAX : $this->limit;
     $content = ($this->offset === NULL) ? $limit : sprintf("%d,%d", $this->offset, $limit);
     return sprintf("LIMIT %s", $content);

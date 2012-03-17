@@ -187,10 +187,10 @@ SQL;
     $this->assertEquals($expected_sql, $sql);
     
     $expected_values = array(5);
-    $this->assertEquals($expected_values, $query->getParamValues());
+    $this->assertEquals($expected_values, $query->getValues());
     
     $expected_types = array(Type::getType('integer'));
-    $this->assertEquals($expected_types, $query->getParamTypes());
+    $this->assertEquals($expected_types, $query->getTypes());
   }
   
   
@@ -240,10 +240,10 @@ SQL;
     $this->assertEquals(sprintf($expected_sql, $join_clause), $sql);
     
     $expected_values = array(2);
-    $this->assertEquals($expected_values, $query->getParamValues());
+    $this->assertEquals($expected_values, $query->getValues());
     
     $expected_types = array(Type::getType('integer'));
-    $this->assertEquals($expected_types, $query->getParamTypes());
+    $this->assertEquals($expected_types, $query->getTypes());
   }
   
   
@@ -283,10 +283,10 @@ SQL;
     $this->assertEquals($expected_sql, $sql);
     
     $expected_values = array(2, 'Foo%');
-    $this->assertEquals($expected_values, $query->getParamValues());
+    $this->assertEquals($expected_values, $query->getValues());
     
     $expected_types = array(Type::getType('integer'), Type::getType('text'));
-    $this->assertEquals($expected_types, $query->getParamTypes());
+    $this->assertEquals($expected_types, $query->getTypes());
   }
   
   
@@ -379,10 +379,10 @@ SQL;
     $this->assertEquals($expected_sql, $sql);
     
     $expected_values = array(3);
-    $this->assertEquals($expected_values, $query->getParamValues());
+    $this->assertEquals($expected_values, $query->getValues());
 
     $expected_types = array(Type::getType('integer'));
-    $this->assertEquals($expected_types, $query->getParamTypes());
+    $this->assertEquals($expected_types, $query->getTypes());
   }
   
   

@@ -22,7 +22,7 @@ class InsertQuery extends ManipulationQuery {
   }
   
   
-  public function toSQL() {
+  public function getFormat() {
     if (count($this->values) == 0) {
       throw new \InvalidArgumentException("No values set.");
     }
@@ -43,12 +43,12 @@ class InsertQuery extends ManipulationQuery {
   }
   
   
-  public function getParamValues() {
+  public function getValues() {
     return array_values($this->values);
   }
   
   
-  public function getParamTypes() {
+  public function getTypes() {
     $table_name = $this->table_name;
     $schema = $this->schema;
     return array_map(function($column_name) use ($schema, $table_name) {

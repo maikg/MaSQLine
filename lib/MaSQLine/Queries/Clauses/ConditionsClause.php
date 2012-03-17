@@ -3,7 +3,7 @@ namespace MaSQLine\Queries\Clauses;
 
 use MaSQLine\Queries\Expression;
 
-class ConditionsClause extends Clause {
+class ConditionsClause extends Expression {
   private $prefix;
   private $expr;
   
@@ -13,27 +13,26 @@ class ConditionsClause extends Clause {
   }
   
   
-  public function setExpression(Expression $expr) {
+  public function setConditionsExpression(Expression $expr) {
     $this->expr = $expr;
   }
   
   
-  public function getParamValues() {
+  public function getValues() {
     return ($this->expr === NULL) ? array() : $this->expr->getValues();
   }
   
   
-  public function getParamTypes() {
+  public function getTypes() {
     return ($this->expr === NULL) ? array() : $this->expr->getTypes();
   }
   
   
-  public function isEmpty() {
-    return ($this->expr === NULL);
-  }
-  
-  
-  public function toSQL() {
+  public function getFormat() {
+    if ($this->expr === NULL) {
+      return '';
+    }
+    
     return sprintf('%s %s', $this->prefix, $this->expr->getFormat());
   }
 }

@@ -21,14 +21,14 @@ class ClausesManager {
   }
   
   
-  public function toSQL() {
+  public function getFormat() {
     $output = array();
     foreach ($this->clauses as $clause_name => $clause) {
       if ($clause === NULL || $clause->isEmpty()) {
         continue;
       }
       
-      $output[] = $clause->toSQL();
+      $output[] = $clause->getFormat();
     }
     
     return implode("\n", $output);
@@ -36,23 +36,23 @@ class ClausesManager {
   
   
   public function __toString() {
-    return $this->toSQL();
+    return $this->getFormat();
   }
   
   
-  public function getParamValues() {
+  public function getValues() {
     $values = array();
     foreach ($this->clauses as $clause) {
-      $values = array_merge($values, $clause->getParamValues());
+      $values = array_merge($values, $clause->getValues());
     }
     return $values;
   }
   
   
-  public function getParamTypes() {
+  public function getTypes() {
     $types = array();
     foreach ($this->clauses as $clause) {
-      $types = array_merge($types, $clause->getParamTypes());
+      $types = array_merge($types, $clause->getTypes());
     }
     return $types;
   }

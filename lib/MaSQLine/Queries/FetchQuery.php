@@ -7,7 +7,7 @@ abstract class FetchQuery extends Query {
   
   public function fetchAll($key_column = NULL) {    
     $rows = $this->conn
-      ->executeQuery($this->toSQL(), $this->getParamValues(), $this->getParamTypes())
+      ->executeQuery($this->getFormat(), $this->getValues(), $this->getTypes())
       ->fetchAll(\PDO::FETCH_ASSOC);
     
     if (count($rows) == 0) {
@@ -34,7 +34,7 @@ abstract class FetchQuery extends Query {
     $this->limit(1);
     
     $row = $this->conn
-      ->executeQuery($this->toSQL(), $this->getParamValues(), $this->getParamTypes())
+      ->executeQuery($this->getFormat(), $this->getValues(), $this->getTypes())
       ->fetch(\PDO::FETCH_ASSOC);
     
     if ($row === false) {

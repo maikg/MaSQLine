@@ -19,9 +19,9 @@ class Expression {
   }
   
   
-  private $format;
-  private $values;
-  private $types;
+  private $format = '';
+  private $values = array();
+  private $types = array();
   
   
   public function __construct($format, array $values = array(), array $types = array()) {
@@ -43,5 +43,11 @@ class Expression {
   
   public function getTypes() {
     return $this->types;
+  }
+  
+  
+  public function isEmpty() {
+    $format = $this->getFormat();
+    return empty($format);
   }
 }

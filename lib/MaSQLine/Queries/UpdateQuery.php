@@ -28,13 +28,13 @@ class UpdateQuery extends ManipulationQuery {
   public function where(\Closure $setup_expression) {
     $builder = new ConditionsBuilder($this->schema);
     $expr = $setup_expression($builder);
-    $this->where_clause->setExpression($expr);
+    $this->where_clause->setConditionsExpression($expr);
         
     return $this;
   }
   
   
-  public function toSQL() {
+  public function getFormat() {
     if ($this->where_clause->isEmpty()) {
       return sprintf(
         "UPDATE `%s` SET %s",
@@ -47,7 +47,7 @@ class UpdateQuery extends ManipulationQuery {
       "UPDATE `%s` SET %s %s",
       $this->table_name,
       implode(', ', $this->getSetExpressions()),
-      $this->where_clause->toSQL()
+      $this->where_clause->getFormat()
     );
   }
   
@@ -62,18 +62,18 @@ class UpdateQuery extends ManipulationQuery {
   }
   
   
-  public function getParamValues() {
-    return array_merge(array_values($this->values), $this->where_clause->getParamValues());
+  public function getValues() {
+    return array_merge(array_values($this->values), $this->where_clause->getValues());
   }
   
   
-  public function getParamTypes() {
+  public function getTypes() {
     $schema = $this->schema;
     $table_name = $this->table_name;
     $types = array_map(function($column_name) use ($schema, $table_name) {
       return $schema->getTable($table_name)->getColumn($column_name)->getType();
     }, array_keys($this->values));
     
-    return array_merge($types, $this->where_clause->getParamTypes());
+    return array_merge($types, $this->where_clause->getTypes());
   }
 }

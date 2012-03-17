@@ -20,27 +20,27 @@ class DeleteQuery extends ManipulationQuery {
   public function where(\Closure $setup_expression) {
     $builder = new ConditionsBuilder($this->schema);
     $expr = $setup_expression($builder);
-    $this->where_clause->setExpression($expr);
+    $this->where_clause->setConditionsExpression($expr);
         
     return $this;
   }
   
   
-  public function toSQL() {
+  public function getFormat() {
     if ($this->where_clause->isEmpty()) {
       return sprintf("DELETE FROM `%s`", $this->table_name);
     }
     
-    return sprintf("DELETE FROM `%s` %s", $this->table_name, $this->where_clause->toSQL());
+    return sprintf("DELETE FROM `%s` %s", $this->table_name, $this->where_clause->getFormat());
   }
   
   
-  public function getParamValues() {
-    return $this->where_clause->getParamValues();
+  public function getValues() {
+    return $this->where_clause->getValues();
   }
   
   
-  public function getParamTypes() {
-    return $this->where_clause->getParamTypes();
+  public function getTypes() {
+    return $this->where_clause->getTypes();
   }
 }

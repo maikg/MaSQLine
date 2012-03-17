@@ -34,18 +34,18 @@ class SelectQuery extends FetchQuery {
   }
   
   
-  public function toSQL() {
-    return $this->clauses_manager->toSQL();
+  public function getFormat() {
+    return $this->clauses_manager->getFormat();
   }
   
   
-  public function getParamValues() {
-    return $this->clauses_manager->getParamValues();
+  public function getValues() {
+    return $this->clauses_manager->getValues();
   }
   
   
-  public function getParamTypes() {
-    return $this->clauses_manager->getParamTypes();
+  public function getTypes() {
+    return $this->clauses_manager->getTypes();
   }
   
   
@@ -119,7 +119,7 @@ class SelectQuery extends FetchQuery {
   public function where(\Closure $setup_expression) {
     $builder = new ConditionsBuilder($this->schema);
     $expr = $setup_expression($builder);
-    $this->getClause('WHERE')->setExpression($expr);
+    $this->getClause('WHERE')->setConditionsExpression($expr);
     return $this;
   }
   
@@ -171,12 +171,12 @@ class SelectQuery extends FetchQuery {
   public function having(\Closure $setup_expression) {
     $builder = new ConditionsBuilder($this->schema);
     $expr = $setup_expression($builder);
-    $this->getClause('HAVING')->setExpression($expr);
+    $this->getClause('HAVING')->setConditionsExpression($expr);
     return $this;
   }
   
   
   public function getConversionTypes() {
-    return $this->getClause('SELECT')->getTypes();
+    return $this->getClause('SELECT')->getConversionTypes();
   }
 }

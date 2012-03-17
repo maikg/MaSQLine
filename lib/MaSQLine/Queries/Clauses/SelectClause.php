@@ -9,7 +9,7 @@ use MaSQLine\Queries\RawColumnExpression;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
 
-class SelectClause extends Clause {
+class SelectClause extends Expression {
   private $schema;
   
   private $columns = array();
@@ -66,7 +66,7 @@ class SelectClause extends Clause {
   }
   
   
-  public function getTypes() {
+  public function getConversionTypes() {
     $types = array();
     
     foreach ($this->columns as $i => $col) {
@@ -82,12 +82,11 @@ class SelectClause extends Clause {
   }
   
   
-  public function isEmpty() {
-    return (count($this->columns) == 0);
-  }
-  
-  
-  public function toSQL() {
+  public function getFormat() {
+    if (count($this->columns) == 0) {
+      return '';
+    }
+    
     $expressions = array_map(function(ColumnExpression $col, $alias) {
       if ($alias !== NULL) {
         return sprintf('%s AS `%s`', $col->toString(), $alias);

@@ -3,9 +3,10 @@ namespace MaSQLine\Queries\Clauses;
 
 use Doctrine\DBAL\Schema\Schema;
 use MaSQLine\Queries\Query;
+use MaSQLine\Queries\Expression;
 use MaSQLine\Queries\ColumnExpression;
 
-class GroupByClause extends Clause {
+class GroupByClause extends Expression {
   private $schema;
   private $columns = array();
   
@@ -15,17 +16,16 @@ class GroupByClause extends Clause {
   }
   
   
-  public function addColumn($field_format) {
-    $this->columns[] = ColumnExpression::parse($this->schema, $field_format);
+  public function addColumn($col_expr) {
+    $this->columns[] = ColumnExpression::parse($this->schema, $col_expr);
   }
+  
+  
+  public function getFormat() {
+    if (count($this->columns) == 0) {
+      return '';
+    }
     
-  
-  public function isEmpty() {
-    return (count($this->columns) == 0);
-  }
-  
-  
-  public function toSQL() {
     return sprintf("GROUP BY %s", implode(', ', $this->columns));
   }
 }

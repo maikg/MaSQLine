@@ -24,13 +24,13 @@ class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
         'body'        => 'Bar',
         'posted_at'   => $dt
       ))
-      ->toSQL();
+      ->getFormat();
     
     $expected_sql = "INSERT INTO `posts` (`author_id`, `title`, `body`, `posted_at`) VALUES (?, ?, ?, ?)";
     $this->assertEquals($expected_sql, $sql);
     
     $expected_values = array(2, 'Foo', 'Bar', $dt);
-    $this->assertEquals($expected_values, $query->getParamValues());
+    $this->assertEquals($expected_values, $query->getValues());
     
     $expected_types = array(
       Type::getType('integer'),
@@ -38,7 +38,7 @@ class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
       Type::getType('text'),
       Type::getType('datetime')
     );
-    $this->assertEquals($expected_types, $query->getParamTypes());
+    $this->assertEquals($expected_types, $query->getTypes());
     
     $row_count = $query->execute();
     $this->assertEquals(1, $row_count);
@@ -72,16 +72,16 @@ class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
         return $where->lt('posts.posted_at', $dt);
       });
     
-    $sql = $query->toSQL();
+    $sql = $query->getFormat();
     
     $expected_sql = "DELETE FROM `posts` WHERE `posts`.`posted_at` < ?";
     $this->assertEquals($expected_sql, $sql);
     
     $expected_values = array($dt);
-    $this->assertEquals($expected_values, $query->getParamValues());
+    $this->assertEquals($expected_values, $query->getValues());
     
     $expected_types = array(Type::getType('datetime'));
-    $this->assertEquals($expected_types, $query->getParamTypes());
+    $this->assertEquals($expected_types, $query->getTypes());
     
     $row_count = $query->execute();
     $this->assertEquals(1, $row_count);
@@ -103,16 +103,16 @@ class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
         return $where->eq('posts.id', 1);
       });
     
-    $sql = $query->toSQL();
+    $sql = $query->getFormat();
     
     $expected_sql = "UPDATE `posts` SET `author_id` = ?, `posted_at` = ? WHERE `posts`.`id` = ?";
     $this->assertEquals($expected_sql, $sql);
     
     $expected_values = array(4, $dt, 1);
-    $this->assertEquals($expected_values, $query->getParamValues());
+    $this->assertEquals($expected_values, $query->getValues());
     
     $expected_types = array(Type::getType('integer'), Type::getType('datetime'), Type::getType('integer'));
-    $this->assertEquals($expected_types, $query->getParamTypes());
+    $this->assertEquals($expected_types, $query->getTypes());
     
     $row_count = $query->execute();
     $this->assertEquals(1, $row_count);
