@@ -104,21 +104,35 @@ class SelectQuery extends FetchQuery {
   }
   
   
-  public function innerJoin($origin, $target) {
-    $this->getClause('FROM')->addInnerJoin($origin, $target);
+  private function processJoinArgs($a, $b) {
+    if ($b instanceof Expression) {
+      $target_table_name = $a;
+      $expr = $b;
+    }
+    else {
+      $target_table_name = ColumnPath::parse($this->schema, $b)->getTable()->getName();
+      $expr = $this->expr()->eqCol($a, $b);
+    }
+    
+    return array($target_table_name, $expr);
+  }
+  
+  
+  public function innerJoin($a, $b) {
+    list($target_table_name, $expr) = $this->processJoinArgs($a, $b);
+    $this->getClause('FROM')->addInnerJoin($target_table_name, $expr);
     return $this;
   }
   
   
-  public function leftJoin($origin, $target) {
-    $this->getClause('FROM')->addLeftJoin($origin, $target);
+  public function leftJoin($a, $b) {
+    list($target_table_name, $expr) = $this->processJoinArgs($a, $b);
+    $this->getClause('FROM')->addLeftJoin($target_table_name, $expr);
     return $this;
   }
   
   
-  public function where(\Closure $setup_expression) {
-    $builder = new ConditionsBuilder($this->schema);
-    $expr = $setup_expression($builder);
+  public function where(Expression $expr) {
     $this->getClause('WHERE')->setConditionsExpression($expr);
     return $this;
   }
@@ -168,9 +182,7 @@ class SelectQuery extends FetchQuery {
   }
   
   
-  public function having(\Closure $setup_expression) {
-    $builder = new ConditionsBuilder($this->schema);
-    $expr = $setup_expression($builder);
+  public function having(Expression $expr) {
     $this->getClause('HAVING')->setConditionsExpression($expr);
     return $this;
   }

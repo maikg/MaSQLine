@@ -173,9 +173,7 @@ SQL;
     $sql = $query
       ->select('posts.title')
       ->from('posts')
-      ->where(function($where) {
-        return $where->eq('posts.id', 5);
-      })
+      ->where($query->expr()->eq('posts.id', 5))
       ->toSQL();
       
     $expected_sql = <<<SQL
@@ -223,12 +221,10 @@ SQL;
     $sql = $query
       ->select('comments.id', 'posts.title')
       ->from('comments')
-      ->$join_method('posts', function($cond) {
-        return $cond->all(
-          $cond->eqCol('comments.post_id', 'posts.id'),
-          $cond->eq('posts.author_id', 2)
-        );
-      })
+      ->$join_method('posts', $query->expr()->all(
+        $query->expr()->eqCol('comments.post_id', 'posts.id'),
+        $query->expr()->eq('posts.author_id', 2)
+      ))
       ->toSQL();
     
     $expected_sql = <<<SQL
@@ -260,15 +256,11 @@ SQL;
     $sql = $query
       ->select('comments.id', 'posts.title')
       ->from('comments')
-      ->where(function($where) {
-        return $where->like('comments.body', 'Foo%');
-      })
-      ->innerJoin('posts', function($cond) {
-        return $cond->all(
-          $cond->eqCol('comments.post_id', 'posts.id'),
-          $cond->eq('posts.author_id', 2)
-        );
-      })
+      ->where($query->expr()->like('comments.body', 'Foo%'))
+      ->innerJoin('posts', $query->expr()->all(
+        $query->expr()->eqCol('comments.post_id', 'posts.id'),
+        $query->expr()->eq('posts.author_id', 2)
+      ))
       ->innerJoin('posts.author_id', 'authors.id')
       ->toSQL();
     
@@ -364,9 +356,7 @@ SQL;
       ->selectAggr('MIN', 'posts.posted_at', 'first_posted_at')
       ->from('posts')
       ->groupBy('posts.author_id')
-      ->having(function($having) {
-        return $having->greaterThan(Expression::raw('COUNT(*)'), 3, 'integer');
-      })
+      ->having($query->expr()->gt(Expression::raw('COUNT(*)'), 3, 'integer'))
       ->toSQL();
     
     $expected_sql = <<<SQL
@@ -448,9 +438,7 @@ SQL;
     $query
       ->select('posts.*')
       ->from('posts')
-      ->where(function($where) {
-        return $where->equalTo('posts.title', 'asdfasdfasdf');
-      });
+      ->where($query->expr()->eq('posts.title', 'asdfasdf'));
     
     $rows = $query->fetchAll('id');
     $this->assertCount(0, $rows);
@@ -550,9 +538,7 @@ SQL;
       ->select('posts.title')
       ->from('posts')
       ->orderBy('posts.id')
-      ->where(function($where) {
-        return $where->equalTo('posts.title', 'asdfasdfasdf');
-      })
+      ->where($query->expr()->eq('posts.title', 'asdfasdf'))
       ->fetchValue();
     
     $this->assertNull($title);

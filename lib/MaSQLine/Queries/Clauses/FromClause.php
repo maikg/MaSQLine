@@ -4,7 +4,7 @@ namespace MaSQLine\Queries\Clauses;
 use Doctrine\DBAL\Schema\Schema;
 use MaSQLine\Queries\Expression;
 use MaSQLine\Queries\Query;
-use MaSQLine\Queries\ConditionsBuilder;
+use MaSQLine\Queries\ExpressionBuilder;
 use MaSQLine\Queries\ColumnPath;
 
 class FromClause extends Expression {
@@ -25,33 +25,39 @@ class FromClause extends Expression {
   }
   
   
-  public function addInnerJoin($origin, $target) {
-    $this->addJoin('INNER JOIN', $origin, $target);
+  public function addInnerJoin($target_table, Expression $join_conditions) {
+    $this->addJoin('INNER JOIN', $target_table, $join_conditions);
   }
   
   
-  public function addLeftJoin($origin, $target) {
-    $this->addJoin('LEFT JOIN', $origin, $target);
+  public function addLeftJoin($target_table, Expression $join_conditions) {
+    $this->addJoin('LEFT JOIN', $target_table, $join_conditions);
   }
   
   
-  private function addJoin($join_prefix, $origin, $target) {
+  private function addJoin($join_prefix, $target_table, Expression $join_conditions) {
     $conditions_clause = new ConditionsClause('ON');
-    $builder = new ConditionsBuilder($this->schema);
-    
-    if ($target instanceof \Closure) {
-      $target_table_name = $origin;
-      $expr = $target($builder);
-    }
-    else {
-      $target_table_name = ColumnPath::parse($this->schema, $target)->getTable()->getName();
-      $expr = $builder->eqCol($origin, $target);
-    }
-    
-    $conditions_clause->setConditionsExpression($expr);
-    
-    $this->joins[] = array($join_prefix, $target_table_name, $conditions_clause);
+    $conditions_clause->setConditionsExpression($join_conditions);
+    $this->joins[] = array($join_prefix, $target_table, $conditions_clause);
   }
+  
+  
+  // private function addJoin($join_prefix, $origin, $target) {
+  //   $conditions_clause = new ConditionsClause('ON');
+  //   
+  //   if ($target instanceof Expression) {
+  //     $target_table_name = $origin;
+  //     $expr = $target;
+  //   }
+  //   else {
+  //     $target_table_name = ColumnPath::parse($this->schema, $target)->getTable()->getName();
+  //     $expr = $this->cond()->eqCol($origin, $target);
+  //   }
+  //   
+  //   $conditions_clause->setConditionsExpression($expr);
+  //   
+  //   $this->joins[] = array($join_prefix, $target_table_name, $conditions_clause);
+  // }
   
   
   public function getValues() {

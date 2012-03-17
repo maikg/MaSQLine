@@ -68,9 +68,7 @@ class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
     
     $query = new DeleteQuery($this->conn, $this->schema, 'posts');
     $query
-      ->where(function($where) use ($dt) {
-        return $where->lt('posts.posted_at', $dt);
-      });
+      ->where($query->expr()->lt('posts.posted_at', $dt));
     
     $sql = $query->getFormat();
     
@@ -99,9 +97,7 @@ class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
         'author_id' => 4,
         'posted_at' => $dt
       ))
-      ->where(function($where) {
-        return $where->eq('posts.id', 1);
-      });
+      ->where($query->expr()->eq('posts.id', 1));
     
     $sql = $query->getFormat();
     

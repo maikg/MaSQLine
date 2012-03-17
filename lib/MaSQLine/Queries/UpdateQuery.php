@@ -25,9 +25,7 @@ class UpdateQuery extends ManipulationQuery {
   }
   
   
-  public function where(\Closure $setup_expression) {
-    $builder = new ConditionsBuilder($this->schema);
-    $expr = $setup_expression($builder);
+  public function where(Expression $expr) {
     $this->where_clause->setConditionsExpression($expr);
         
     return $this;

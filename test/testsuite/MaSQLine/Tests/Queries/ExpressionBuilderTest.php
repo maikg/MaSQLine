@@ -1,7 +1,7 @@
 <?PHP
 namespace MaSQLine\Tests\Queries;
 
-use MaSQLine\Queries\ConditionsBuilder;
+use MaSQLine\Queries\ExpressionBuilder;
 use MaSQLine\Queries\Expression;
 use Doctrine\DBAL\Types\Type;
 
@@ -12,7 +12,7 @@ class ConditionsBuilderTest extends \MaSQLine\Tests\TestCase {
   public function setUp() {
     $this->setUpWithSchemaFixture('schema');
     
-    $this->builder = new ConditionsBuilder($this->schema);
+    $this->builder = new ExpressionBuilder($this->schema);
   }
   
   
