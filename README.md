@@ -132,15 +132,13 @@ $sql = $query
     // Shortcut join syntax, which you can read as follows: "[local_table].[foreign_key]
     // maps to [foreign_table].[primary_key]". You can also use leftJoin().
     ->innerJoin('posts.author_id', 'authors.id')
-    ->where(function($where) {
-        $where
-            ->in('posts.author_id', array(2, 3))
-            ->orGroup(function($where) {
-                $where
-                    ->like('posts.title', 'Foo%')
-                    ->like('posts.title', '%Bar');
-            });
-    })
+    ->where($query->expr()->all(
+        $query->expr()->in('posts.author_id', array(2, 3)),
+        $query->expr()->any(
+            $query->expr()->like('posts.title', 'Foo%'),
+            $query->expr()->like('posts.title', '%Bar')
+        )
+    ))
     ->orderBy('-posted_at', 'posts.id')
     ->limit(10)
     ->offset(20)
@@ -208,10 +206,8 @@ $query
     // ...
     // When executing this query, the 'id' column in the result will be a string instead of an int.
     ->selectColumn('posts.id', 'string')
-    ->having(function($having) {
-        // Not a column of the form "[table_name].[column_name]", so specifying a type is mandatory.
-        $having->greaterThan(Query::raw('COUNT(*)'), 3, 'integer')
-    })
+    // Not a column of the form "[table_name].[column_name]", so specifying a type is mandatory.
+    ->having($query->expr()->gt(Expression::raw('COUNT(*)'), 3, 'integer'))
     // ...
 
 // Selecting aggregate columns.
@@ -233,11 +229,10 @@ $query
     // ...
     ->from('posts')
     // Note that you specify the table to join as the first argument using this syntax.
-    ->leftJoin('authors', function($conditions) {
-        $conditions
-            ->equalColumns('posts.author_id', 'authors.id')
-            ->in('authors.id', array(2, 3));
-    })
+    ->leftJoin('authors', $query->expr()->all(
+        $query->expr()->eqCol('posts.author_id', 'authors.id'),
+        $query->expr()->in('authors.id', array(2, 3))
+    ))
     // ...
 ?>
 ```
@@ -270,9 +265,7 @@ $db = new \MaSQLine\DB($conn, $schema);
 
 $db
     ->createDeleteQuery('posts')
-    ->where(function($where) {
-        $where->equals('posts.id', 2);
-    })
+    ->where($db->expr()->eq('posts.id', 2))
     ->execute();
 ?>
 ```

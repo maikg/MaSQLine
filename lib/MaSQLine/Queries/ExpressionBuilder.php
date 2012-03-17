@@ -14,6 +14,11 @@ class ExpressionBuilder {
   }
   
   
+  public function getSchema() {
+    return $this->schema;
+  }
+  
+  
   public function raw($expr) {
     return Expression::raw($expr);
   }

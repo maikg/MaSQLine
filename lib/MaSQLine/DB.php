@@ -66,6 +66,8 @@ class DB {
   private $conn;
   private $schema;
   
+  private $expression_builder;
+  
   
   public function __construct(Connection $conn, Schema $schema) {
     $this->conn = $conn;
@@ -163,6 +165,20 @@ class DB {
     $query = $this->createDeleteQuery($table_name);    
     $this->applyEqualsConditionsToQuery($query, $table_name, $conditions);
     return $query->execute();
+  }
+  
+  
+  public function getExpressionBuilder() {
+    if ($this->expression_builder === NULL) {
+      $this->expression_builder = new Queries\ExpressionBuilder($this->schema);
+    }
+    
+    return $this->expression_builder;
+  }
+  
+  
+  public function expr() {
+    return $this->getExpressionBuilder();
   }
   
   

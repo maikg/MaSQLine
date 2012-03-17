@@ -543,4 +543,14 @@ SQL;
     
     $this->assertNull($title);
   }
+  
+  
+  public function testExpressionBuilder() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    
+    $builder = $query->expr();
+    
+    $this->assertInstanceOf('\MaSQLine\Queries\ExpressionBuilder', $builder);
+    $this->assertSame($this->schema, $builder->getSchema());
+  }
 }
