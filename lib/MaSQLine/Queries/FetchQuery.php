@@ -5,7 +5,7 @@ abstract class FetchQuery extends Query {
   abstract protected function getConversionTypes();
   
   
-  public function fetchAll($key_column = NULL) {
+  public function fetchAll($key_column = NULL) {    
     $rows = $this->conn
       ->executeQuery($this->toSQL(), $this->getParamValues(), $this->getParamTypes())
       ->fetchAll(\PDO::FETCH_ASSOC);

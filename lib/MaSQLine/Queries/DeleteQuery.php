@@ -13,13 +13,15 @@ class DeleteQuery extends ManipulationQuery {
     parent::__construct($conn, $schema);
     
     $this->table_name = $table_name;
-    $this->where_clause = new Clauses\ConditionsClause($this->schema, 'AND');
+    $this->where_clause = new Clauses\ConditionsClause('WHERE');
   }
   
   
-  public function where(\Closure $setup_where) {
-    $setup_where($this->where_clause);
-    
+  public function where(\Closure $setup_expression) {
+    $builder = new ConditionsBuilder($this->schema);
+    $expr = $setup_expression($builder);
+    $this->where_clause->setExpression($expr);
+        
     return $this;
   }
   
@@ -29,7 +31,7 @@ class DeleteQuery extends ManipulationQuery {
       return sprintf("DELETE FROM `%s`", $this->table_name);
     }
     
-    return sprintf("DELETE FROM `%s` WHERE %s", $this->table_name, $this->where_clause->toSQL());
+    return sprintf("DELETE FROM `%s` %s", $this->table_name, $this->where_clause->toSQL());
   }
   
   

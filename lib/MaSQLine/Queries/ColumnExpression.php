@@ -6,7 +6,7 @@ use Doctrine\DBAL\Types\Type;
 
 abstract class ColumnExpression {
   public static function parse(Schema $schema, $expr, $type = NULL) {
-    $raw = RawColumnExpression::parse($schema, $expr, $type);
+    $raw = RawColumnExpression::parse($expr, $type);
     
     if ($raw !== NULL) {
       return $raw;
@@ -27,6 +27,7 @@ abstract class ColumnExpression {
   
   abstract public function getType();
   abstract public function toString();
+  abstract public function getDefaultAlias();
   
   
   public function __toString() {

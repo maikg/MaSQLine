@@ -21,9 +21,9 @@ class SelectQuery extends FetchQuery {
       'SELECT'      => new Clauses\SelectClause($this->schema),
       'FROM'        => new Clauses\FromClause($this->schema),
       'WHERE'       => new Clauses\ConditionsClause('WHERE'),
-      'GROUP BY'    => new Clauses\GroupByClause(),
+      'GROUP BY'    => new Clauses\GroupByClause($this->schema),
       'HAVING'      => new Clauses\ConditionsClause('HAVING'),
-      'ORDER BY'    => new Clauses\OrderByClause(),
+      'ORDER BY'    => new Clauses\OrderByClause($this->schema),
       'LIMIT'       => new Clauses\LimitClause()
     );
   }
@@ -49,34 +49,50 @@ class SelectQuery extends FetchQuery {
   }
   
   
+  private function expandColumnExpression($col_expr) {
+    if (is_array($col_expr)) {
+      $column = key($col_expr);
+      $alias = current($col_expr);
+    }
+    else {
+      $column = $col_expr;
+      $alias = NULL;
+    }
+    
+    return array($column, $alias);
+  }
+  
+  
   public function select() {
     $args = func_get_args();
     
     foreach ($args as $arg) {
-      $this->getClause('SELECT')->addColumn($arg);
+      list($column, $alias) = $this->expandColumnExpression($arg);
+      $this->getClause('SELECT')->addColumn($column, $alias);
     }
     
     return $this;
   }
   
   
-  public function selectColumn($field_format, $type = NULL) {
-    $this->getClause('SELECT')->addColumn($field_format, $type);
+  public function selectColumn($col_expr, $type = NULL) {
+    list($column, $alias) = $this->expandColumnExpression($col_expr);
+    $this->getClause('SELECT')->addColumn($column, $alias, $type);
     return $this;
   }
   
   
-  public function selectAggr($name, $field_format, $alias = NULL, $type = NULL) {
-    $this->getClause('SELECT')->addAggregateColumn($name, $field_format, $alias, $type);
+  public function selectAggr($name, $col_expr, $alias = NULL, $type = NULL) {
+    $this->getClause('SELECT')->addAggregateColumn($name, $col_expr, $alias, $type);
     return $this;
   }
   
   
-  public function selectCount($field_format = NULL, $alias = NULL) {
-    if ($field_format === NULL) {
-      $field_format = Query::raw('*');
+  public function selectCount($col_expr = NULL, $alias = NULL) {
+    if ($col_expr === NULL) {
+      $col_expr = Expression::raw('*');
     }
-    $this->getClause('SELECT')->addAggregateColumn('COUNT', $field_format, $alias, Type::getType('integer'));
+    $this->getClause('SELECT')->addAggregateColumn('COUNT', $col_expr, $alias, 'integer');
     
     return $this;
   }

@@ -3,21 +3,31 @@ namespace MaSQLine\Queries\Clauses;
 
 use Doctrine\DBAL\Schema\Schema;
 use MaSQLine\Queries\Query;
+use MaSQLine\Queries\ColumnPath;
 
 class OrderByClause extends Clause {
   const SORT_ASC = '+';
   const SORT_DESC = '-';
   
   
+  private $schema;
   private $expressions = array();
   
   
-  public function addColumn($field_format, $direction = NULL) {
+  public function __construct(Schema $schema) {
+    $this->schema = $schema;
+  }
+  
+  
+  public function addColumn($col_expr, $direction = NULL) {    
     if ($direction === NULL) {
       $direction = self::SORT_ASC;
     }
     
-    $this->expressions[] = sprintf("%s %s", Query::quoteFieldFormat($field_format), $this->convertDirection($direction));
+    $col = ColumnPath::parse($this->schema, $col_expr);
+    $col_expr = ($col === NULL) ? sprintf('`%s`', $col_expr) : $col->toString();
+    
+    $this->expressions[] = sprintf("%s %s", $col_expr, $this->convertDirection($direction));
   }
   
   

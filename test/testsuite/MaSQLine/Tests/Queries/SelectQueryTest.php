@@ -64,7 +64,7 @@ SQL;
       ->toSQL();
       
     $expected_sql = <<<SQL
-SELECT `authors`.*
+SELECT `authors`.`id`, `authors`.`username`
 FROM `authors`
 SQL;
     
@@ -138,7 +138,7 @@ SQL;
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select()
-      ->selectColumn(array(Query::raw('COUNT(*)') => 'num'), 'integer')
+      ->selectColumn(array(Expression::raw('COUNT(*)') => 'num'), 'integer')
       ->from('posts')
       ->toSQL();
       
@@ -162,7 +162,7 @@ SQL;
   public function testRawSQLExpressionWithoutType() {
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
-      ->select(array(Query::raw('COUNT(*)') => 'num'))
+      ->select(array(Expression::raw('COUNT(*)') => 'num'))
       ->from('posts')
       ->toSQL();
   }
@@ -173,7 +173,7 @@ SQL;
     $sql = $query
       ->select('posts.title')
       ->from('posts')
-      ->where(function($where) use ($condition_method) {
+      ->where(function($where) {
         return $where->eq('posts.id', 5);
       })
       ->toSQL();
@@ -184,7 +184,7 @@ FROM `posts`
 WHERE `posts`.`id` = ?
 SQL;
     
-    $this->assertEquals(sprintf($expected_sql, $operator), $sql);
+    $this->assertEquals($expected_sql, $sql);
     
     $expected_values = array(5);
     $this->assertEquals($expected_values, $query->getParamValues());
@@ -425,7 +425,7 @@ SQL;
       ->select('posts.*')
       ->from('posts')
       ->orderBy('posts.id');
-      
+    
     $rows = $query->fetchAll();
     
     $this->assertCount(2, $rows);

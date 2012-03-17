@@ -5,7 +5,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
 
 class RawColumnExpression extends ColumnExpression {
-  public static function parse(Schema $schema, $expr, $type) {
+  public static function parse($expr, $type) {
     $raw = Expression::unpackRaw($expr);
     
     if ($raw === false) {
@@ -36,6 +36,11 @@ class RawColumnExpression extends ColumnExpression {
   
   
   public function toString() {
+    return $this->raw;
+  }
+  
+  
+  public function getDefaultAlias() {
     return $this->raw;
   }
 }

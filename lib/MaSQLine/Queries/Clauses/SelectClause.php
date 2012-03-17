@@ -2,14 +2,18 @@
 namespace MaSQLine\Queries\Clauses;
 
 use MaSQLine\Queries\Query;
+use MaSQLine\Queries\Expression;
+use MaSQLine\Queries\ColumnExpression;
+use MaSQLine\Queries\ColumnPath;
+use MaSQLine\Queries\RawColumnExpression;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
 
 class SelectClause extends Clause {
   private $schema;
   
-  private $expressions = array();
-  private $types = array();
+  private $columns = array();
+  private $aliases = array();
   
   
   public function __construct(Schema $schema) {
@@ -17,127 +21,81 @@ class SelectClause extends Clause {
   }
   
   
-  public function addAggregateColumn($name, $field_format, $alias = NULL, $type = NULL) {    
-    $raw = Query::unpackRaw($field_format);
-    if ($raw !== false) {
-      $expression = $raw;
-    }
-    else {
-      list($table_name, $column_name) = Query::convertFieldFormat($field_format);
-      $expression = sprintf("`%s`.`%s`", $table_name, $column_name);
-    }
-    
-    $raw = Query::raw(sprintf("%s(%s)", $name, $expression));
+  public function addAggregateColumn($name, $col_expr, $alias = NULL, $type = NULL) {
+    $col = ColumnExpression::parse($this->schema, $col_expr, $type);
+    $field_expr = sprintf('%s(%s)', $name, $col->toString());
     
     if ($type === NULL) {
-      $type = $this->schema->getTable($table_name)->getColumn($column_name)->getType();
+      if ($col instanceof ColumnPath) {
+        $type = $col->getColumn()->getType();
+      }
+      else {
+        throw new \InvalidArgumentException("Expected type to be specified for aggregate column.");
+      }
     }
     
-    $this->addColumn(
-      ($alias === NULL) ? $raw : array($raw => $alias),
-      $type
-    );
+    $this->columns[] = new RawColumnExpression($field_expr, ColumnExpression::convertType($type));
+    $this->aliases[] = $alias;
   }
   
   
-  public function addColumn($field_format, $type = NULL) {
-    $alias = NULL;
+  public function addColumn($expr, $alias = NULL, $type = NULL) {
+    $col = ColumnExpression::parse($this->schema, $expr, $type);
     
-    if (is_array($field_format)) {
-      $alias = current($field_format);
-      $field_format = key($field_format);
-    }
-    
-    $raw = Query::unpackRaw($field_format);
-    if ($raw !== false) {
-      $this->addRawColumn($raw, $alias, $type);
-    }
-    else if (preg_match(Query::FIELD_FORMAT_REGEX, $field_format, $regex_matches)) {
-      list(, $table_name, $column_name) = $regex_matches;
-      $this->addRegularColumn($table_name, $column_name, $alias, $type);
+    if (!is_array($col)) {
+      $this->columns[] = $col;
+      $this->aliases[] = $alias;
     }
     else {
-      throw new \InvalidArgumentException(sprintf("Got unknown field format: %s", $field_format));
-    }
-  }
-  
-  
-  private function addRawColumn($raw, $alias, $type = NULL) {
-    $this->addExpression($raw, $alias);
-    
-    if ($type === NULL) {
-      throw new \InvalidArgumentException(sprintf("Expected type to be explicitly defined for raw expression: %s", $raw));
-    }
-    
-    $this->setType(
-      ($alias === NULL) ? $raw : $alias,
-      $type
-    );
-  }
-  
-  
-  private function addRegularColumn($table_name, $column_name, $alias = NULL, $type = NULL) {
-    if ($column_name == '*') {
       if ($alias !== NULL) {
-        throw new \InvalidArgumentException(sprintf("Got alias for wildcard expression: %s.*", $table_name));
+        throw new \InvalidArgumentException("Can't specify an alias for wildcard column paths.");
+      }
+      if ($type !== NULL) {
+        throw new \InvalidArgumentException("Can't specify a type for wildcard column paths.");
       }
       
-      $this->addExpression(sprintf("`%s`.*", $table_name));
-      $this->setAllTypesForTable($table_name);
-    }
-    else {
-      $this->addExpression(sprintf("`%s`.`%s`", $table_name, $column_name), $alias);
-      
-      if ($type === NULL) {
-        $type = $this->schema->getTable($table_name)->getColumn($column_name)->getType();
-      }
-      
-      $this->setType(
-        ($alias === NULL) ? $column_name : $alias,
-        $type
-      );
-    }
-  }
-  
-  
-  private function addExpression($expression, $alias = NULL) {
-    $this->expressions[] = ($alias === NULL) ? $expression : sprintf("%s AS `%s`", $expression, $alias);
-  }
-  
-  
-  private function setType($alias, $type) {
-    if (is_string($type)) {
-      $type = Type::getType($type);
-    }
-    $this->types[$alias] = $type;
-  }
-  
-  
-  private function setAllTypesForTable($table_name) {
-    $columns = $this->schema->getTable($table_name)->getColumns();
-    foreach ($columns as $column) {
-      $this->setType($column->getName(), $column->getType());
+      $this->columns = array_merge($this->columns, $col);
+      $this->aliases = array_merge($this->aliases, array_fill(0, count($col), NULL));
     }
   }
   
   
   public function clearColumns() {
-    $this->expressions = array();
-    $this->types = array();
+    $this->columns = array();
+    $this->aliases = array();
   }
   
   
   public function getTypes() {
-    return $this->types;
+    $types = array();
+    
+    foreach ($this->columns as $i => $col) {
+      $alias = $this->aliases[$i];
+      if ($alias === NULL) {
+        $alias = $col->getDefaultAlias();
+      }
+      
+      $types[$alias] = $col->getType();
+    }
+    
+    return $types;
   }
   
   
   public function isEmpty() {
-    return (count($this->expressions) == 0);
+    return (count($this->columns) == 0);
   }
   
   
   public function toSQL() {
-    return "SELECT " . implode(', ', $this->expressions);
+    $expressions = array_map(function(ColumnExpression $col, $alias) {
+      if ($alias !== NULL) {
+        return sprintf('%s AS `%s`', $col->toString(), $alias);
+      }
+      
+      return $col->toString();
+    }, $this->columns, $this->aliases);
+    
+    return "SELECT " . implode(', ', $expressions);
   }
 }

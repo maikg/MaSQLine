@@ -14,7 +14,7 @@ class UpdateQuery extends ManipulationQuery {
     parent::__construct($conn, $schema);
     
     $this->table_name = $table_name;
-    $this->where_clause = new Clauses\ConditionsClause($this->schema, 'AND');
+    $this->where_clause = new Clauses\ConditionsClause('WHERE');
   }
   
   
@@ -25,9 +25,11 @@ class UpdateQuery extends ManipulationQuery {
   }
   
   
-  public function where(\Closure $setup_where) {
-    $setup_where($this->where_clause);
-    
+  public function where(\Closure $setup_expression) {
+    $builder = new ConditionsBuilder($this->schema);
+    $expr = $setup_expression($builder);
+    $this->where_clause->setExpression($expr);
+        
     return $this;
   }
   
@@ -42,7 +44,7 @@ class UpdateQuery extends ManipulationQuery {
     }
     
     return sprintf(
-      "UPDATE `%s` SET %s WHERE %s",
+      "UPDATE `%s` SET %s %s",
       $this->table_name,
       implode(', ', $this->getSetExpressions()),
       $this->where_clause->toSQL()
@@ -53,7 +55,8 @@ class UpdateQuery extends ManipulationQuery {
   private function getSetExpressions() {
     $expressions = array();
     foreach ($this->values as $column_name => $value) {
-      $expressions[] = sprintf("%s = ?", Query::quoteFieldFormat($column_name));
+      $column_path = sprintf('%s.%s', $this->table_name, $column_name);
+      $expressions[] = sprintf("%s = ?", ColumnPath::parse($this->schema, $column_path)->toColumnString());
     }
     return $expressions;
   }

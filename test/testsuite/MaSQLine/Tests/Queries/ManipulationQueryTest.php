@@ -69,7 +69,7 @@ class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
     $query = new DeleteQuery($this->conn, $this->schema, 'posts');
     $query
       ->where(function($where) use ($dt) {
-        $where->smallerThan('posts.posted_at', $dt);
+        return $where->lt('posts.posted_at', $dt);
       });
     
     $sql = $query->toSQL();
@@ -100,7 +100,7 @@ class ManipulationQueryTest extends \MaSQLine\Tests\TestCase {
         'posted_at' => $dt
       ))
       ->where(function($where) {
-        $where->equals('posts.id', 1);
+        return $where->eq('posts.id', 1);
       });
     
     $sql = $query->toSQL();
