@@ -26,7 +26,7 @@ class DB {
   public static function register($alias, $db, $default = false) {
     self::$instances[$alias] = $db;
     
-    if ($default) {
+    if ($default || count(self::$instances) == 1) {
       self::$default_alias = $alias;
     }
   }
@@ -55,6 +55,10 @@ class DB {
   
   
   public static function getDefault() {
+    if (self::$default_alias === NULL) {
+      throw new \RuntimeException("No default database is set.");
+    }
+    
     return self::get(self::$default_alias);
   }
   
@@ -167,10 +171,15 @@ class DB {
       return;
     }
     
-    $query->where(function($where) use ($table_name, $conditions) {
-      foreach ($conditions as $key => $value) {
-        $where->equals(sprintf('%s.%s', $table_name, $key), $value);
-      }
-    });
+    $builder = $query->expr();
+    
+    $conditions = array_map(function($key, $value) use ($table_name, $builder) {
+      $col_path = sprintf('%s.%s', $table_name, $key);
+      return $builder->eq($col_path, $value);
+    }, array_keys($conditions), $conditions);
+    
+    $expr = call_user_func_array(array($builder, 'all'), $conditions);
+    
+    $query->where($expr);
   }
 }

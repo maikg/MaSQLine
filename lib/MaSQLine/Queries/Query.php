@@ -17,6 +17,16 @@ abstract class Query extends Expression {
   }
   
   
+  public function getConnection() {
+    return $this->conn;
+  }
+  
+  
+  public function getSchema() {
+    return $this->schema;
+  }
+  
+  
   public function __toString() {
     return $this->getFormat();
   }
