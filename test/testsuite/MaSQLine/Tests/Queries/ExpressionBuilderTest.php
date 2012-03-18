@@ -120,6 +120,8 @@ class ConditionsBuilderTest extends \MaSQLine\Tests\TestCase {
     
     $expr = $this->builder->all($expr1, $expr2);
     
+    $this->assertInstanceOf('\MaSQLine\Queries\CompoundExpression', $expr);
+    $this->assertEquals(array($expr1, $expr2), $expr->getExpressions());
     $this->assertEquals(sprintf('(%s AND %s)', $expr1->getFormat(), $expr2->getFormat()), $expr->getFormat());
     $this->assertEquals(array(2, 'Foo%'), $expr->getValues());
     $this->assertEquals(array(Type::getType('integer'), Type::getType('string')), $expr->getTypes());
@@ -135,6 +137,8 @@ class ConditionsBuilderTest extends \MaSQLine\Tests\TestCase {
       $expr2
     );
     
+    $this->assertInstanceOf('\MaSQLine\Queries\CompoundExpression', $expr);
+    $this->assertEquals(array($expr1, $expr2), $expr->getExpressions());
     $this->assertEquals(sprintf('(%s OR %s)', $expr1->getFormat(), $expr2->getFormat()), $expr->getFormat());
     $this->assertEquals(array(2, 'Foo%'), $expr->getValues());
     $this->assertEquals(array(Type::getType('integer'), Type::getType('string')), $expr->getTypes());

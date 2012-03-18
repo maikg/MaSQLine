@@ -176,20 +176,7 @@ class ExpressionBuilder {
   
   
   private function compoundCondition(array $expressions, $glue) {
-    $formats = array_map(function(Expression $expr) {
-      return $expr->getFormat();
-    }, $expressions);
-    $format = sprintf('(%s)', implode($glue, $formats));
-    
-    $values = array_reduce($expressions, function(array $result, Expression $expr) {
-      return array_merge($result, $expr->getValues());
-    }, array());
-    
-    $types = array_reduce($expressions, function(array $result, Expression $expr) {
-      return array_merge($result, $expr->getTypes());
-    }, array());
-    
-    return new Expression($format, $values, $types);
+    return new CompoundExpression($glue, $expressions);
   }
   
   
