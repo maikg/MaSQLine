@@ -1,7 +1,7 @@
 <?PHP
 namespace MaSQLine\Queries;
 
-class CompoundExpression extends Expression {
+class CompoundExpression extends Expression implements \ArrayAccess {
   private $format_glue;
   
   private $expressions = array();
@@ -20,6 +20,26 @@ class CompoundExpression extends Expression {
   
   public function getExpressions() {
     return $this->expressions;
+  }
+  
+  
+  public function offsetExists($offset) {
+    return array_key_exists($offset, $this->expressions);
+  }
+  
+  
+  public function offsetGet($offset) {
+    return $this->expressions[$offset];
+  }
+  
+  
+  public function offsetSet($offset, $value) {
+    $this->expressions[$offset] = $value;
+  }
+  
+  
+  public function offsetUnset($offset) {
+    unset($this->expressions[$offset]);
   }
   
   
