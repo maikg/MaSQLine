@@ -1,6 +1,7 @@
 <?PHP
 namespace MaSQLine\Tests\Queries;
 
+use MaSQLine\Queries\SelectQuery;
 use MaSQLine\Queries\ExpressionBuilder;
 use MaSQLine\Queries\Expression;
 use Doctrine\DBAL\Types\Type;
@@ -12,7 +13,9 @@ class ConditionsBuilderTest extends \MaSQLine\Tests\TestCase {
   public function setUp() {
     $this->setUpWithSchemaFixture('schema');
     
-    $this->builder = new ExpressionBuilder($this->schema);
+    $query = new SelectQuery($this->conn, $this->schema);
+    
+    $this->builder = new ExpressionBuilder($query);
   }
   
   

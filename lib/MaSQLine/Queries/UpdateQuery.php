@@ -14,7 +14,7 @@ class UpdateQuery extends ManipulationQuery {
     parent::__construct($conn, $schema);
     
     $this->table_name = $table_name;
-    $this->where_clause = new Clauses\ConditionsClause('WHERE');
+    $this->where_clause = new Clauses\ConditionsClause($this, 'WHERE');
   }
   
   
@@ -54,7 +54,7 @@ class UpdateQuery extends ManipulationQuery {
     $expressions = array();
     foreach ($this->values as $column_name => $value) {
       $column_path = sprintf('%s.%s', $this->table_name, $column_name);
-      $expressions[] = sprintf("%s = ?", ColumnPath::parse($this->schema, $column_path)->toColumnString());
+      $expressions[] = sprintf("%s = ?", ColumnPath::parse($this, $column_path)->toColumnString());
     }
     return $expressions;
   }

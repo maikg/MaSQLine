@@ -1,18 +1,17 @@
 <?PHP
 namespace MaSQLine\Queries;
 
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
 
 abstract class ColumnExpression {
-  public static function parse(Schema $schema, $expr, $type = NULL) {
+  public static function parse(Query $query, $expr, $type = NULL) {
     $raw = RawColumnExpression::parse($expr, $type);
     
     if ($raw !== NULL) {
       return $raw;
     }
     
-    return ColumnPath::parse($schema, $expr, $type);
+    return ColumnPath::parse($query, $expr, $type);
   }
   
   

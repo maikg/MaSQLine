@@ -6,23 +6,22 @@ use MaSQLine\Queries\Expression;
 use MaSQLine\Queries\ColumnExpression;
 use MaSQLine\Queries\ColumnPath;
 use MaSQLine\Queries\RawColumnExpression;
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
 
 class SelectClause extends Expression {
-  private $schema;
+  private $query;
   
   private $columns = array();
   private $aliases = array();
   
   
-  public function __construct(Schema $schema) {
-    $this->schema = $schema;
+  public function __construct(Query $query) {
+    $this->query = $query;
   }
   
   
   public function addAggregateColumn($name, $col_expr, $alias = NULL, $type = NULL) {
-    $col = ColumnExpression::parse($this->schema, $col_expr, $type);
+    $col = ColumnExpression::parse($this->query, $col_expr, $type);
     $field_expr = sprintf('%s(%s)', $name, $col->toString());
     
     if ($type === NULL) {
@@ -40,7 +39,7 @@ class SelectClause extends Expression {
   
   
   public function addColumn($expr, $alias = NULL, $type = NULL) {
-    $col = ColumnExpression::parse($this->schema, $expr, $type);
+    $col = ColumnExpression::parse($this->query, $expr, $type);
     
     if (!is_array($col)) {
       $this->columns[] = $col;

@@ -18,13 +18,13 @@ class SelectQuery extends FetchQuery {
   
   private function createClauses() {
     return array(
-      'SELECT'      => new Clauses\SelectClause($this->schema),
-      'FROM'        => new Clauses\FromClause($this->schema),
-      'WHERE'       => new Clauses\ConditionsClause('WHERE'),
-      'GROUP BY'    => new Clauses\GroupByClause($this->schema),
-      'HAVING'      => new Clauses\ConditionsClause('HAVING'),
-      'ORDER BY'    => new Clauses\OrderByClause($this->schema),
-      'LIMIT'       => new Clauses\LimitClause()
+      'SELECT'      => new Clauses\SelectClause($this),
+      'FROM'        => new Clauses\FromClause($this),
+      'WHERE'       => new Clauses\ConditionsClause($this, 'WHERE'),
+      'GROUP BY'    => new Clauses\GroupByClause($this),
+      'HAVING'      => new Clauses\ConditionsClause($this, 'HAVING'),
+      'ORDER BY'    => new Clauses\OrderByClause($this),
+      'LIMIT'       => new Clauses\LimitClause($this)
     );
   }
   
@@ -110,7 +110,7 @@ class SelectQuery extends FetchQuery {
       $expr = $b;
     }
     else {
-      $target_table_name = ColumnPath::parse($this->schema, $b)->getTable()->getName();
+      $target_table_name = ColumnPath::parse($this, $b)->getTable()->getName();
       $expr = $this->expr()->eqCol($a, $b);
     }
     

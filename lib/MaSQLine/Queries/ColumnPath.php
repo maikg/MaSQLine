@@ -1,13 +1,12 @@
 <?PHP
 namespace MaSQLine\Queries;
 
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Types\Type;
 
 class ColumnPath extends ColumnExpression {
-  public static function parse(Schema $schema, $expr, $type = NULL) {
+  public static function parse(Query $query, $expr, $type = NULL) {
     if (strpos($expr, '.') === false) {
       return NULL;
     }
@@ -17,6 +16,8 @@ class ColumnPath extends ColumnExpression {
     }
     
     list($table_name, $column_name) = explode('.', $expr);
+    
+    $schema = $query->getSchema();
     
     if ($column_name == '*') {
       // Expand wildcards.

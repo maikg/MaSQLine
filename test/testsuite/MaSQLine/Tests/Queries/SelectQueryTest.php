@@ -551,6 +551,6 @@ SQL;
     $builder = $query->expr();
     
     $this->assertInstanceOf('\MaSQLine\Queries\ExpressionBuilder', $builder);
-    $this->assertSame($this->schema, $builder->getSchema());
+    $this->assertSame($query, $builder->getQuery());
   }
 }

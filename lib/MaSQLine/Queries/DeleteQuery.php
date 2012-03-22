@@ -13,7 +13,7 @@ class DeleteQuery extends ManipulationQuery {
     parent::__construct($conn, $schema);
     
     $this->table_name = $table_name;
-    $this->where_clause = new Clauses\ConditionsClause('WHERE');
+    $this->where_clause = new Clauses\ConditionsClause($this, 'WHERE');
   }
   
   

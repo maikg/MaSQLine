@@ -2,13 +2,14 @@
 namespace MaSQLine\Queries\Clauses;
 
 use MaSQLine\Queries\Expression;
+use MaSQLine\Queries\Query;
 
 class ConditionsClause extends Expression {
   private $prefix;
   private $expr;
   
   
-  public function __construct($prefix) {
+  public function __construct(Query $query, $prefix) {
     $this->prefix = $prefix;
   }
   

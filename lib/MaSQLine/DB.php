@@ -168,20 +168,6 @@ class DB {
   }
   
   
-  public function getExpressionBuilder() {
-    if ($this->expression_builder === NULL) {
-      $this->expression_builder = new Queries\ExpressionBuilder($this->schema);
-    }
-    
-    return $this->expression_builder;
-  }
-  
-  
-  public function expr() {
-    return $this->getExpressionBuilder();
-  }
-  
-  
   private function applyEqualsConditionsToQuery($query, $table_name, array $conditions) {
     if (count($conditions) == 0) {
       return;

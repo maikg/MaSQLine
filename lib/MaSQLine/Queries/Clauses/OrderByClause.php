@@ -1,7 +1,6 @@
 <?PHP
 namespace MaSQLine\Queries\Clauses;
 
-use Doctrine\DBAL\Schema\Schema;
 use MaSQLine\Queries\Expression;
 use MaSQLine\Queries\Query;
 use MaSQLine\Queries\ColumnPath;
@@ -11,12 +10,12 @@ class OrderByClause extends Expression {
   const SORT_DESC = '-';
   
   
-  private $schema;
+  private $query;
   private $expressions = array();
   
   
-  public function __construct(Schema $schema) {
-    $this->schema = $schema;
+  public function __construct(Query $query) {
+    $this->query = $query;
   }
   
   
@@ -25,7 +24,7 @@ class OrderByClause extends Expression {
       $direction = self::SORT_ASC;
     }
     
-    $col = ColumnPath::parse($this->schema, $col_expr);
+    $col = ColumnPath::parse($this->query, $col_expr);
     $col_expr = ($col === NULL) ? sprintf('`%s`', $col_expr) : $col->toString();
     
     $this->expressions[] = sprintf("%s %s", $col_expr, $this->convertDirection($direction));

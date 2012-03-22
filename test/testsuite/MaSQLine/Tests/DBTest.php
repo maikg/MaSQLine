@@ -104,14 +104,6 @@ SQL;
   }
   
   
-  public function testExpressionBuilder() {
-    $builder = $this->db->expr();
-    
-    $this->assertInstanceOf('\MaSQLine\Queries\ExpressionBuilder', $builder);
-    $this->assertSame($this->schema, $builder->getSchema());
-  }
-  
-  
   public function testRegistry() {
     DB::register('db1', $this->db);
     $this->assertSame($this->db, DB::get('db1'));

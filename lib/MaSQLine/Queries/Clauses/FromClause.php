@@ -1,22 +1,21 @@
 <?PHP
 namespace MaSQLine\Queries\Clauses;
 
-use Doctrine\DBAL\Schema\Schema;
 use MaSQLine\Queries\Expression;
 use MaSQLine\Queries\Query;
 use MaSQLine\Queries\ExpressionBuilder;
 use MaSQLine\Queries\ColumnPath;
 
 class FromClause extends Expression {
-  private $schema;
+  private $query;
   
   private $table_name;
   
   private $joins = array();
   
   
-  public function __construct(Schema $schema) {
-    $this->schema = $schema;
+  public function __construct(Query $query) {
+    $this->query = $query;
   }
   
   
@@ -36,28 +35,10 @@ class FromClause extends Expression {
   
   
   private function addJoin($join_prefix, $target_table, Expression $join_conditions) {
-    $conditions_clause = new ConditionsClause('ON');
+    $conditions_clause = new ConditionsClause($this->query, 'ON');
     $conditions_clause->setConditionsExpression($join_conditions);
     $this->joins[] = array($join_prefix, $target_table, $conditions_clause);
   }
-  
-  
-  // private function addJoin($join_prefix, $origin, $target) {
-  //   $conditions_clause = new ConditionsClause('ON');
-  //   
-  //   if ($target instanceof Expression) {
-  //     $target_table_name = $origin;
-  //     $expr = $target;
-  //   }
-  //   else {
-  //     $target_table_name = ColumnPath::parse($this->schema, $target)->getTable()->getName();
-  //     $expr = $this->cond()->eqCol($origin, $target);
-  //   }
-  //   
-  //   $conditions_clause->setConditionsExpression($expr);
-  //   
-  //   $this->joins[] = array($join_prefix, $target_table_name, $conditions_clause);
-  // }
   
   
   public function getValues() {

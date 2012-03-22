@@ -10,6 +10,8 @@ abstract class Query extends Expression {
   
   private $expression_builder;
   
+  private $table_aliases = array();
+  
   
   public function __construct(Connection $conn, Schema $schema) {
     $this->conn = $conn;
@@ -39,7 +41,7 @@ abstract class Query extends Expression {
   
   public function getExpressionBuilder() {
     if ($this->expression_builder === NULL) {
-      $this->expression_builder = new ExpressionBuilder($this->schema);
+      $this->expression_builder = new ExpressionBuilder($this);
     }
     
     return $this->expression_builder;
@@ -48,5 +50,19 @@ abstract class Query extends Expression {
   
   public function expr() {
     return $this->getExpressionBuilder();
+  }
+  
+  
+  protected function registerTableAlias($table_name, $alias) {
+    $this->table_aliases[$alias] = $table_name;
+  }
+  
+  
+  public function getRealTableName($alias) {
+    if (!array_key_exists($alias, $this->table_aliases)) {
+      return $alias;
+    }
+    
+    return $this->table_aliases[$alias];
   }
 }

@@ -1,21 +1,17 @@
 <?PHP
 namespace MaSQLine\Queries;
 
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Types\Type;
-
 class ExpressionBuilder {
-  private $schema;
+  private $query;
   
   
-  public function __construct(Schema $schema) {
-    $this->schema = $schema;
+  public function __construct(Query $query) {
+    $this->query = $query;
   }
   
   
-  public function getSchema() {
-    return $this->schema;
+  public function getQuery() {
+    return $this->query;
   }
   
   
@@ -25,7 +21,7 @@ class ExpressionBuilder {
   
   
   private function parseColumnExpression($column_expr, $type = NULL) {
-    return ColumnExpression::parse($this->schema, $column_expr, $type);
+    return ColumnExpression::parse($this->query, $column_expr, $type);
   }
   
   
