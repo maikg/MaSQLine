@@ -46,7 +46,7 @@ class DBTest extends TestCase {
     $query = $this->db->simpleSelect('authors');
     
     $expected_sql = <<<SQL
-SELECT `authors`.`id`, `authors`.`username`
+SELECT `authors`.*
 FROM `authors`
 SQL;
     
@@ -58,7 +58,7 @@ SQL;
     $query = $this->db->simpleSelect('authors', array('id' => 1));
     
     $expected_sql = <<<SQL
-SELECT `authors`.`id`, `authors`.`username`
+SELECT `authors`.*
 FROM `authors`
 WHERE (`authors`.`id` = ?)
 SQL;

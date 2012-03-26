@@ -5,7 +5,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
 
 class RawColumnExpression extends ColumnExpression {
-  public static function parse($expr, $type) {
+  public static function parse(Query $query, $expr, $type) {
     $raw = Expression::unpackRaw($expr);
     
     if ($raw === false) {

@@ -7,6 +7,7 @@ use MaSQLine\Queries\ColumnExpression;
 use MaSQLine\Queries\ColumnPath;
 use MaSQLine\Queries\RawColumnExpression;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Schema\Column;
 
 class SelectClause extends Expression {
   private $query;
@@ -25,12 +26,7 @@ class SelectClause extends Expression {
     $field_expr = sprintf('%s(%s)', $name, $col->toString());
     
     if ($type === NULL) {
-      if ($col instanceof ColumnPath) {
-        $type = $col->getColumn()->getType();
-      }
-      else {
-        throw new \InvalidArgumentException("Expected type to be specified for aggregate column.");
-      }
+      throw new \InvalidArgumentException("Expected type to be specified for aggregate column.");
     }
     
     $this->columns[] = new RawColumnExpression($field_expr, ColumnExpression::convertType($type));
@@ -41,21 +37,12 @@ class SelectClause extends Expression {
   public function addColumn($expr, $alias = NULL, $type = NULL) {
     $col = ColumnExpression::parse($this->query, $expr, $type);
     
-    if (!is_array($col)) {
-      $this->columns[] = $col;
-      $this->aliases[] = $alias;
+    if (($col instanceof ColumnPath) && $col->isWildcardPath() && $alias !== NULL) {
+      throw new \InvalidArgumentException("Can't specify an alias for wildcard column paths.");
     }
-    else {
-      if ($alias !== NULL) {
-        throw new \InvalidArgumentException("Can't specify an alias for wildcard column paths.");
-      }
-      if ($type !== NULL) {
-        throw new \InvalidArgumentException("Can't specify a type for wildcard column paths.");
-      }
-      
-      $this->columns = array_merge($this->columns, $col);
-      $this->aliases = array_merge($this->aliases, array_fill(0, count($col), NULL));
-    }
+    
+    $this->columns[] = $col;
+    $this->aliases[] = $alias;
   }
   
   
@@ -69,15 +56,29 @@ class SelectClause extends Expression {
     $types = array();
     
     foreach ($this->columns as $i => $col) {
-      $alias = $this->aliases[$i];
-      if ($alias === NULL) {
-        $alias = $col->getDefaultAlias();
+      if (($col instanceof ColumnPath) && $col->isWildcardPath()) {
+        $types = array_merge($types, $this->fetchTypesForWildcardColumnPath($col));
       }
-      
-      $types[$alias] = $col->getType();
+      else {
+        $alias = $this->aliases[$i];
+        if ($alias === NULL) {
+          $alias = $col->getDefaultAlias();
+        }
+
+        $types[$alias] = $col->getType();
+      }
     }
     
     return $types;
+  }
+  
+  
+  private function fetchTypesForWildcardColumnPath(ColumnPath $col) {
+    $table_name = $this->query->getRealTableName($col->getTableName());
+    $table_cols = $this->query->getSchema()->getTable($table_name)->getColumns();
+    return array_map(function(Column $col) {
+      return $col->getType();
+    }, $table_cols);
   }
   
   

@@ -11,6 +11,8 @@ class FromClause extends Expression {
   
   private $table_name;
   
+  private $alias;
+  
   private $joins = array();
   
   
@@ -19,25 +21,26 @@ class FromClause extends Expression {
   }
   
   
-  public function setTableName($table_name) {
+  public function setTableName($table_name, $alias = NULL) {
     $this->table_name = $table_name;
+    $this->alias = $alias;
   }
   
   
-  public function addInnerJoin($target_table, Expression $join_conditions) {
-    $this->addJoin('INNER JOIN', $target_table, $join_conditions);
+  public function addInnerJoin($target_table, Expression $join_conditions, $table_alias = NULL) {
+    $this->addJoin('INNER JOIN', $target_table, $join_conditions, $table_alias);
   }
   
   
-  public function addLeftJoin($target_table, Expression $join_conditions) {
-    $this->addJoin('LEFT JOIN', $target_table, $join_conditions);
+  public function addLeftJoin($target_table, Expression $join_conditions, $table_alias = NULL) {
+    $this->addJoin('LEFT JOIN', $target_table, $join_conditions, $table_alias);
   }
   
   
-  private function addJoin($join_prefix, $target_table, Expression $join_conditions) {
+  private function addJoin($join_prefix, $target_table, Expression $join_conditions, $table_alias = NULL) {
     $conditions_clause = new ConditionsClause($this->query, 'ON');
     $conditions_clause->setConditionsExpression($join_conditions);
-    $this->joins[] = array($join_prefix, $target_table, $conditions_clause);
+    $this->joins[] = array($join_prefix, $target_table, $conditions_clause, $table_alias);
   }
   
   
@@ -66,16 +69,19 @@ class FromClause extends Expression {
       return '';
     }
     
-    if (empty($this->table_name)) {
-      throw new \RuntimeException("Expected a table name to be set.");
-    }
-    
     $lines = array_map(function($join) {
-      list($join_type, $target_table_name, $conditions) = $join;
-      return sprintf("%s `%s` %s", $join_type, $target_table_name, $conditions->getFormat());
+      list($join_type, $target_table_name, $conditions, $table_alias) = $join;
+      
+      if ($table_alias === NULL) {
+        return sprintf("%s `%s` %s", $join_type, $target_table_name, $conditions->getFormat());
+      }
+      
+      return sprintf("%s `%s` AS `%s` %s", $join_type, $target_table_name, $table_alias, $conditions->getFormat());
     }, $this->joins);
     
-    array_unshift($lines, sprintf("FROM `%s`", $this->table_name));
+    $table_expr = ($this->alias === NULL) ? sprintf('`%s`', $this->table_name) :
+      sprintf('`%s` AS `%s`', $this->table_name, $this->alias);
+    array_unshift($lines, sprintf("FROM %s", $table_expr));
     
     return implode("\n", $lines);
   }

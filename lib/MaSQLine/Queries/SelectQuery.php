@@ -99,35 +99,52 @@ class SelectQuery extends FetchQuery {
   
   
   public function from($table_name) {
-    $this->getClause('FROM')->setTableName($table_name);
+    if (is_array($table_name)) {
+      $alias = current($table_name);
+      $table_name = key($table_name);
+    }
+    else {
+      $alias = NULL;
+    }
+    
+    $this->getClause('FROM')->setTableName($table_name, $alias);
     return $this;
   }
   
   
   private function processJoinArgs($a, $b) {
+    $table_alias = NULL;
+    
     if ($b instanceof Expression) {
-      $target_table_name = $a;
+      if (is_array($a)) {
+        $target_table_name = key($a);
+        $table_alias = current($a);
+      }
+      else {
+        $target_table_name = $a;
+      }
+      
       $expr = $b;
     }
     else {
-      $target_table_name = ColumnPath::parse($this, $b)->getTable()->getName();
+      $target_table_name = ColumnPath::parse($this, $b)->getTableName();
       $expr = $this->expr()->eqCol($a, $b);
     }
     
-    return array($target_table_name, $expr);
+    return array($target_table_name, $expr, $table_alias);
   }
   
   
   public function innerJoin($a, $b) {
-    list($target_table_name, $expr) = $this->processJoinArgs($a, $b);
-    $this->getClause('FROM')->addInnerJoin($target_table_name, $expr);
+    list($target_table_name, $expr, $table_alias) = $this->processJoinArgs($a, $b);
+    $this->getClause('FROM')->addInnerJoin($target_table_name, $expr, $table_alias);
     return $this;
   }
   
   
   public function leftJoin($a, $b) {
-    list($target_table_name, $expr) = $this->processJoinArgs($a, $b);
-    $this->getClause('FROM')->addLeftJoin($target_table_name, $expr);
+    list($target_table_name, $expr, $table_alias) = $this->processJoinArgs($a, $b);
+    $this->getClause('FROM')->addLeftJoin($target_table_name, $expr, $table_alias);
     return $this;
   }
   

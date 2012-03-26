@@ -64,7 +64,7 @@ SQL;
       ->toSQL();
       
     $expected_sql = <<<SQL
-SELECT `authors`.`id`, `authors`.`username`
+SELECT `authors`.*
 FROM `authors`
 SQL;
     
@@ -168,6 +168,28 @@ SQL;
   }
   
   
+  public function testFromTableAlias() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('p.id', 'p.posted_at')
+      ->from($query->table('posts', 'p'))
+      ->toSQL();
+    
+    $expected_sql = <<<SQL
+SELECT `p`.`id`, `p`.`posted_at`
+FROM `posts` AS `p`
+SQL;
+    
+    $this->assertEquals($expected_sql, $sql);
+    
+    $expected_types = array(
+      'id'        => Type::getType('integer'),
+      'posted_at' => Type::getType('datetime')
+    );
+    $this->assertEquals($expected_types, $query->getConversionTypes());
+  }
+  
+  
   public function testWhereClause() {
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
@@ -248,6 +270,24 @@ SQL;
       array('innerJoin', 'INNER JOIN'),
       array('leftJoin', 'LEFT JOIN')
     );
+  }
+  
+  
+  public function testComplexJoinWithAlias() {
+    $query = new SelectQuery($this->conn, $this->schema);
+    $sql = $query
+      ->select('comments.id', 'p.title')
+      ->from('comments')
+      ->innerJoin($query->table('posts', 'p'), $query->expr()->eqCol('comments.post_id', 'p.id'))
+      ->toSQL();
+    
+    $expected_sql = <<<SQL
+SELECT `comments`.`id`, `p`.`title`
+FROM `comments`
+INNER JOIN `posts` AS `p` ON `comments`.`post_id` = `p`.`id`
+SQL;
+    
+    $this->assertEquals($expected_sql, $sql);
   }
   
   
@@ -353,7 +393,7 @@ SQL;
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select('posts.author_id')
-      ->selectAggr('MIN', 'posts.posted_at', 'first_posted_at')
+      ->selectAggr('MIN', 'posts.posted_at', 'first_posted_at', 'datetime')
       ->from('posts')
       ->groupBy('posts.author_id')
       ->having($query->expr()->gt(Expression::raw('COUNT(*)'), 3, 'integer'))
@@ -380,8 +420,8 @@ SQL;
     $query = new SelectQuery($this->conn, $this->schema);
     $sql = $query
       ->select('posts.author_id')
-      ->selectAggr('MIN', 'posts.posted_at')
-      ->selectAggr('MAX', 'posts.posted_at', 'last_posted_at')
+      ->selectAggr('MIN', 'posts.posted_at', NULL, 'datetime')
+      ->selectAggr('MAX', 'posts.posted_at', 'last_posted_at', 'datetime')
       ->selectCount(NULL, 'all_count')
       ->selectCount('posts.id', 'post_id_count')
       ->from('posts')
@@ -520,7 +560,7 @@ SQL;
     
     $query = new SelectQuery($this->conn, $this->schema);
     $num = $query
-      ->selectAggr('MAX', 'posts.posted_at', 'last_posted_at')
+      ->selectAggr('MAX', 'posts.posted_at', 'last_posted_at', 'datetime')
       ->selectCount(NULL, 'num')
       ->from('posts')
       ->orderBy('posts.id')

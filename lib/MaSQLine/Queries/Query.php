@@ -53,16 +53,26 @@ abstract class Query extends Expression {
   }
   
   
+  public function table($table_name, $alias = NULL) {
+    if ($alias === NULL) {
+      return $table_name;
+    }
+    
+    $this->registerTableAlias($table_name, $alias);
+    return array($table_name => $alias);
+  }
+  
+  
   protected function registerTableAlias($table_name, $alias) {
     $this->table_aliases[$alias] = $table_name;
   }
   
   
-  public function getRealTableName($alias) {
-    if (!array_key_exists($alias, $this->table_aliases)) {
-      return $alias;
+  public function getRealTableName($table_name) {
+    if (!array_key_exists($table_name, $this->table_aliases)) {
+      return $table_name;
     }
     
-    return $this->table_aliases[$alias];
+    return $this->table_aliases[$table_name];
   }
 }

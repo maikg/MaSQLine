@@ -5,7 +5,7 @@ use Doctrine\DBAL\Types\Type;
 
 abstract class ColumnExpression {
   public static function parse(Query $query, $expr, $type = NULL) {
-    $raw = RawColumnExpression::parse($expr, $type);
+    $raw = RawColumnExpression::parse($query, $expr, $type);
     
     if ($raw !== NULL) {
       return $raw;

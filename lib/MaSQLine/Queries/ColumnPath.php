@@ -17,63 +17,75 @@ class ColumnPath extends ColumnExpression {
     
     list($table_name, $column_name) = explode('.', $expr);
     
-    $schema = $query->getSchema();
-    
-    if ($column_name == '*') {
-      // Expand wildcards.
-      $table = $schema->getTable($table_name);
-      $columns = array_values($table->getColumns());
-      return array_map(function(Column $column) use ($table) {
-        return new ColumnPath($table, $column);
-      }, $columns);
-    }
-    
-    $table = $schema->getTable($table_name);
-    $column = $table->getColumn($column_name);
-    return new ColumnPath($table, $column, $type);
+    return new ColumnPath($query, $table_name, $column_name, $type);
   }
   
+  private $query;
   
-  private $table;
-  private $column;
+  private $table_name;
+  private $column_name;
   
-  private $type;
+  private $forced_type;
   
   
-  public function __construct(Table $table, Column $column, Type $type = NULL) {
-    $this->table = $table;
-    $this->column = $column;
+  public function __construct(Query $query, $table_name, $column_name, Type $forced_type = NULL) {
+    $this->query = $query;
     
-    $this->type = ($type === NULL) ? $this->column->getType() : $type;
+    $this->table_name = $table_name;
+    $this->column_name = $column_name;
+    
+    $this->forced_type = $forced_type;
   }
   
   
   public function getType() {
-    return $this->type;
+    if ($this->forced_type !== NULL) {
+      return $this->forced_type;
+    }
+    
+    $table_name = $this->query->getRealTableName($this->table_name);
+    
+    return $this->query
+      ->getSchema()
+      ->getTable($table_name)
+      ->getColumn($this->column_name)
+      ->getType();
   }
   
   
-  public function getTable() {
-    return $this->table;
+  public function getTableName() {
+    return $this->table_name;
   }
   
   
-  public function getColumn() {
-    return $this->column;
+  public function getColumnName() {
+    return $this->column_name;
   }
   
   
-  public function toString() {
-    return sprintf('`%s`.`%s`', $this->table->getName(), $this->column->getName());
+  public function isWildcardPath() {
+    return ($this->column_name == '*');
+  }
+  
+  
+  public function toString() {    
+    if ($this->isWildcardPath()) {
+      return sprintf('`%s`.*', $this->table_name);
+    }
+    
+    return sprintf('`%s`.`%s`',
+      $this->table_name,
+      $this->column_name
+    );
   }
   
   
   public function toColumnString() {
-    return sprintf('`%s`', $this->column->getName());
+    return sprintf('`%s`', $this->column_name);
   }
   
   
   public function getDefaultAlias() {
-    return $this->column->getName();
+    return $this->column_name;
   }
 }
