@@ -6,6 +6,7 @@ use MaSQLine\Queries\Expression;
 use MaSQLine\Queries\ColumnExpression;
 use MaSQLine\Queries\ColumnPath;
 use MaSQLine\Queries\RawColumnExpression;
+use MaSQLine\Queries\AggregateColumnExpression;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Schema\Column;
 
@@ -22,14 +23,8 @@ class SelectClause extends Expression {
   
   
   public function addAggregateColumn($name, $col_expr, $alias = NULL, $type = NULL) {
-    $col = ColumnExpression::parse($this->query, $col_expr, $type);
-    $field_expr = sprintf('%s(%s)', $name, $col->toString());
-    
-    if ($type === NULL) {
-      throw new \InvalidArgumentException("Expected type to be specified for aggregate column.");
-    }
-    
-    $this->columns[] = new RawColumnExpression($field_expr, ColumnExpression::convertType($type));
+    $col = ColumnExpression::parse($this->query, $col_expr, $type);    
+    $this->columns[] = new AggregateColumnExpression($this->query, $name, $col, $type);
     $this->aliases[] = $alias;
   }
   
