@@ -4,6 +4,9 @@ namespace MaSQLine\Queries;
 use Doctrine\DBAL\Types\Type;
 
 abstract class ColumnExpression {
+  private $alias;
+  
+  
   public static function parse(Query $query, $expr, $type = NULL) {
     $raw = RawColumnExpression::parse($query, $expr, $type);
     
@@ -21,6 +24,16 @@ abstract class ColumnExpression {
     }
     
     return $type;
+  }
+  
+  
+  public function setAlias($alias) {
+    $this->alias = $alias;
+  }
+  
+  
+  public function getAlias() {
+    return $this->alias;
   }
   
   

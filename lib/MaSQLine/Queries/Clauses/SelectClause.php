@@ -14,7 +14,6 @@ class SelectClause extends Expression {
   private $query;
   
   private $columns = array();
-  private $aliases = array();
   
   
   public function __construct(Query $query) {
@@ -23,9 +22,10 @@ class SelectClause extends Expression {
   
   
   public function addAggregateColumn($name, $col_expr, $alias = NULL, $type = NULL) {
-    $col = ColumnExpression::parse($this->query, $col_expr, $type);    
-    $this->columns[] = new AggregateColumnExpression($this->query, $name, $col, $type);
-    $this->aliases[] = $alias;
+    $inner_col = ColumnExpression::parse($this->query, $col_expr, $type);
+    $col = new AggregateColumnExpression($this->query, $name, $inner_col, $type);
+    $col->setAlias($alias);
+    $this->columns[] = $col;
   }
   
   
@@ -35,9 +35,11 @@ class SelectClause extends Expression {
     if (($col instanceof ColumnPath) && $col->isWildcardPath() && $alias !== NULL) {
       throw new \InvalidArgumentException("Can't specify an alias for wildcard column paths.");
     }
+    else {
+      $col->setAlias($alias);
+    }
     
     $this->columns[] = $col;
-    $this->aliases[] = $alias;
   }
   
   
@@ -55,7 +57,7 @@ class SelectClause extends Expression {
         $types = array_merge($types, $this->fetchTypesForWildcardColumnPath($col));
       }
       else {
-        $alias = $this->aliases[$i];
+        $alias = $col->getAlias();
         if ($alias === NULL) {
           $alias = $col->getDefaultAlias();
         }
@@ -82,13 +84,14 @@ class SelectClause extends Expression {
       return '';
     }
     
-    $expressions = array_map(function(ColumnExpression $col, $alias) {
+    $expressions = array_map(function(ColumnExpression $col) {
+      $alias = $col->getAlias();
       if ($alias !== NULL) {
         return sprintf('%s AS `%s`', $col->toString(), $alias);
       }
       
       return $col->toString();
-    }, $this->columns, $this->aliases);
+    }, $this->columns);
     
     return "SELECT " . implode(', ', $expressions);
   }
